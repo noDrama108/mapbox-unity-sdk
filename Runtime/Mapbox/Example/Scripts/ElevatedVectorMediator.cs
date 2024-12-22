@@ -8,7 +8,7 @@ using Mapbox.VectorModule;
 
 namespace Mapbox.Example.Scripts.ModuleBehaviours
 {
-    public class ElevatedVectorMediator : LayerModule
+    public class ElevatedVectorMediator
     {
         private VectorLayerModule _vectorLayer;
         private TerrainLayerModule _terrainLayer;
@@ -19,12 +19,12 @@ namespace Mapbox.Example.Scripts.ModuleBehaviours
             _terrainLayer = terrainModule;
         }
 
-        public override bool LoadInstant(UnityMapTile unityTile)
+        public virtual bool LoadInstant(UnityMapTile unityTile)
         {
             return _terrainLayer.LoadInstant(unityTile) && _vectorLayer.LoadInstant(unityTile);
         }
 
-        public override bool RetainTiles(HashSet<CanonicalTileId> retainedTiles,
+        public virtual bool RetainTiles(HashSet<CanonicalTileId> retainedTiles,
             Dictionary<UnwrappedTileId, UnityMapTile> activeTiles)
         {
             return _terrainLayer.RetainTiles(retainedTiles, activeTiles) && _vectorLayer.RetainTiles(retainedTiles, activeTiles);

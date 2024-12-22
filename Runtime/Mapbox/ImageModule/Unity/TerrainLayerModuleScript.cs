@@ -17,7 +17,7 @@ namespace Mapbox.Example.Scripts.ModuleBehaviours
 	{
 		public TerrainLayerModuleSettings Settings;
 
-		private ITerrainLayerModule _terrainLayerModuleImplementation;
+		public override ILayerModule ModuleImplementation { get; protected set; }
 
 		//do not delete
 		//having a start method forces unity to have an enable/disable script checkbox in the inspector
@@ -32,18 +32,14 @@ namespace Mapbox.Example.Scripts.ModuleBehaviours
 			var elevationTileset = MapboxDefaultElevation.GetParameters(Settings.SourceType);
 			Settings.DataSettings.TilesetId = elevationTileset.Id;
 			
-			_terrainLayerModuleImplementation =
+			var module =
 				new TerrainLayerModule(
 					service.GetTerrainRasterSource(Settings.DataSettings),
 					Settings);
 
-			mapInformation.QueryElevation = _terrainLayerModuleImplementation.QueryElevation;
-			return _terrainLayerModuleImplementation;
-		}
-
-		private float QueryElevation(CanonicalTileId tileId, float x, float y)
-		{
-			return _terrainLayerModuleImplementation.QueryElevation(tileId, x, y);
+			mapInformation.QueryElevation = module.QueryElevation;
+			ModuleImplementation = module;
+			return ModuleImplementation;
 		}
 	}
 }

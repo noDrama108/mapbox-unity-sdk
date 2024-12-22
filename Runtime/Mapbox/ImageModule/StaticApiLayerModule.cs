@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace Mapbox.ImageModule
 {
-	public class StaticApiLayerModule : LayerModule, ILayerModule
+	public class StaticApiLayerModule : ILayerModule
 	{
 		protected StaticLayerModuleSettings _settings;
 		protected Source<RasterData> _rasterSource;
@@ -22,9 +22,8 @@ namespace Mapbox.ImageModule
 			_rasterSource = source;
 		}
 
-		public override IEnumerator Initialize()
+		public virtual IEnumerator Initialize()
 		{
-			yield return base.Initialize();
 			yield return _rasterSource.Initialize();
 			if (_settings.LoadBackgroundTextures)
 			{
@@ -32,7 +31,7 @@ namespace Mapbox.ImageModule
 			}
 		}
 		
-		public override void LoadTempTile(UnityMapTile unityTile)
+		public virtual void LoadTempTile(UnityMapTile unityTile)
 		{
 			var parentTileId = unityTile.CanonicalTileId;
 			for (int i = unityTile.CanonicalTileId.Z; i >= 2; i--)
@@ -46,7 +45,7 @@ namespace Mapbox.ImageModule
 			}
 		}
 
-		public override bool LoadInstant(UnityMapTile unityTile)
+		public virtual bool LoadInstant(UnityMapTile unityTile)
 		{
 			if (_rasterSource.GetInstantData(unityTile.CanonicalTileId, out var instantData))
 			{
@@ -56,7 +55,7 @@ namespace Mapbox.ImageModule
 			return false;
 		}
 		
-		public override bool RetainTiles(HashSet<CanonicalTileId> retainedTiles,
+		public virtual bool RetainTiles(HashSet<CanonicalTileId> retainedTiles,
 			Dictionary<UnwrappedTileId, UnityMapTile> activeTiles)
 		{
 			_retainedTiles = retainedTiles;
@@ -64,17 +63,21 @@ namespace Mapbox.ImageModule
 			return isReady;
 		}
 
-		public override void OnDestroy()
+		public void UpdatePositioning(IMapInformation mapInfo)
 		{
-			base.OnDestroy();
+            
+		}
+		
+		public virtual void OnDestroy()
+		{
 			_rasterSource.OnDestroy();
 		}
 
 
 		//COROUTINE METHODS only used in initialization so far
 		#region coroutines
-		public override IEnumerator LoadTileData(CanonicalTileId tileId, Action<MapboxTileData> callback) => _rasterSource.LoadTileCoroutine(tileId, callback);		
-		public override IEnumerator LoadTiles(IEnumerable<CanonicalTileId> tiles)
+		public virtual IEnumerator LoadTileData(CanonicalTileId tileId, Action<MapboxTileData> callback) => _rasterSource.LoadTileCoroutine(tileId, callback);		
+		public virtual IEnumerator LoadTiles(IEnumerable<CanonicalTileId> tiles)
 		{
 			yield return _rasterSource.LoadTilesCoroutine(tiles);
 		}

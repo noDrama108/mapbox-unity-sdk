@@ -15,7 +15,7 @@ using Console = System.Console;
 
 namespace Mapbox.VectorModule
 {
-	public class VectorLayerModule : LayerModule, ILayerModule
+	public class VectorLayerModule : ILayerModule
 	{
 		private Source<VectorData> _vectorSource;
 		private MeshGenerationUnit _meshGenerationUnit;
@@ -38,19 +38,18 @@ namespace Mapbox.VectorModule
 			_activeTiles = new HashSet<CanonicalTileId>();
 		}
 
-		public override IEnumerator Initialize()
+		public virtual IEnumerator Initialize()
 		{
-			base.Initialize();
 			yield return _vectorSource.Initialize();
 			yield return _meshGenerationUnit.Initialize();
 		}
 
-		public override void LoadTempTile(UnityMapTile tile)
+		public virtual void LoadTempTile(UnityMapTile tile)
 		{
 			
 		}
 
-		public override bool LoadInstant(UnityMapTile unityTile)
+		public virtual bool LoadInstant(UnityMapTile unityTile)
 		{
 			var targetId = GetTargetTileId(unityTile.CanonicalTileId);
 			if (_readyTiles.Contains(targetId))
@@ -73,7 +72,7 @@ namespace Mapbox.VectorModule
 			return false;
 		}
 
-		public override bool RetainTiles(HashSet<CanonicalTileId> retainedTiles, Dictionary<UnwrappedTileId, UnityMapTile> activeTiles)
+		public virtual bool RetainTiles(HashSet<CanonicalTileId> retainedTiles, Dictionary<UnwrappedTileId, UnityMapTile> activeTiles)
 		{
 			UpdateRetainedTiles(retainedTiles);
 			UpdateActiveTileList(activeTiles);
@@ -97,7 +96,7 @@ namespace Mapbox.VectorModule
 			}
 		}
 
-		public override void UpdatePositioning(IMapInformation information)
+		public virtual void UpdatePositioning(IMapInformation information)
 		{
 			foreach (var tileId in _readyTiles)
 			{
@@ -109,7 +108,7 @@ namespace Mapbox.VectorModule
 			}
 		}
 		
-		public override void OnDestroy()
+		public virtual void OnDestroy()
 		{
 			_meshGenerationUnit.OnDestroy();
 		}
@@ -144,12 +143,12 @@ namespace Mapbox.VectorModule
 			yield return CreateVisualCoroutine(tile, tileData);
 		}
 		
-		public override IEnumerator LoadTileData(CanonicalTileId tileId, Action<MapboxTileData> callback = null)
+		public virtual IEnumerator LoadTileData(CanonicalTileId tileId, Action<MapboxTileData> callback = null)
 		{
 			yield return _vectorSource.LoadTileCoroutine(tileId, callback);
 		}
 
-		public override IEnumerator ProcessTileData(CanonicalTileId tileId)
+		public virtual IEnumerator ProcessTileData(CanonicalTileId tileId)
 		{
 			if (_vectorSource.GetInstantData(tileId, out var data))
 			{
@@ -157,7 +156,7 @@ namespace Mapbox.VectorModule
 			}
 		}
 
-		public override IEnumerator LoadTiles(IEnumerable<CanonicalTileId> tiles)
+		public virtual IEnumerator LoadTiles(IEnumerable<CanonicalTileId> tiles)
 		{
 			//this section loaded all data first and started processing once they are all loaded
 			//commented this out and replaced it with the section below

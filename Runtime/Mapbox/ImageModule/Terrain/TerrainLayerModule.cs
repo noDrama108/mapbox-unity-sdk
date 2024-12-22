@@ -12,7 +12,7 @@ using TerrainData = Mapbox.BaseModule.Data.DataFetchers.TerrainData;
 
 namespace Mapbox.ImageModule.Terrain
 {
-    public class TerrainLayerModule : LayerModule, ITerrainLayerModule
+    public class TerrainLayerModule : ITerrainLayerModule
     {
         private TerrainLayerModuleSettings _settings;
         private Source<TerrainData> _rasterSource;
@@ -26,9 +26,8 @@ namespace Mapbox.ImageModule.Terrain
             _rasterSource = source;
         }
         
-        public override IEnumerator Initialize()
+        public virtual IEnumerator Initialize()
         {
-            yield return base.Initialize();
             yield return _rasterSource.Initialize();
             
             if(_settings.LoadBackgroundTextures)
@@ -36,8 +35,8 @@ namespace Mapbox.ImageModule.Terrain
                 _rasterSource?.DownloadAndCacheBaseTiles();
             }
         }
-        
-        public override void LoadTempTile(UnityMapTile unityTile)
+
+        public virtual void LoadTempTile(UnityMapTile unityTile)
         {
             if (_settings.ElevationLayerType == ElevationLayerType.FlatTerrain)
             {
@@ -58,7 +57,7 @@ namespace Mapbox.ImageModule.Terrain
             }
         }
         
-        public override bool LoadInstant(UnityMapTile unityTile)
+        public virtual bool LoadInstant(UnityMapTile unityTile)
         {
             if (_settings.ElevationLayerType == ElevationLayerType.FlatTerrain)
             {
@@ -76,7 +75,7 @@ namespace Mapbox.ImageModule.Terrain
             return false;
         }
         
-        public override bool RetainTiles(HashSet<CanonicalTileId> retainedTiles,
+        public virtual bool RetainTiles(HashSet<CanonicalTileId> retainedTiles,
             Dictionary<UnwrappedTileId, UnityMapTile> activeTiles)
         {
             if (_settings.ElevationLayerType == ElevationLayerType.FlatTerrain)
@@ -116,10 +115,19 @@ namespace Mapbox.ImageModule.Terrain
             }
         }
         
+        public void UpdatePositioning(IMapInformation mapInfo)
+        {
+            
+        }
+                
+        public void OnDestroy()
+        {
+            _rasterSource.OnDestroy();
+        }
         
         //COROUTINE METHODS only used in initialization so far
         #region coroutine methods
-        public override IEnumerator LoadTileData(CanonicalTileId tileId, Action<MapboxTileData> callback = null)
+        public virtual IEnumerator LoadTileData(CanonicalTileId tileId, Action<MapboxTileData> callback = null)
         {
             if (_settings.ElevationLayerType == ElevationLayerType.TerrainWithElevation)
             {
@@ -128,7 +136,7 @@ namespace Mapbox.ImageModule.Terrain
             return null;
         }
 
-        public override IEnumerator LoadTiles(IEnumerable<CanonicalTileId> tiles)
+        public virtual IEnumerator LoadTiles(IEnumerable<CanonicalTileId> tiles)
         {
             if (_settings.ElevationLayerType == ElevationLayerType.TerrainWithElevation)
             {

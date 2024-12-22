@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using JetBrains.Annotations;
 using Mapbox.BaseModule;
 using Mapbox.BaseModule.Data.Interfaces;
 using Mapbox.BaseModule.Map;
@@ -12,7 +13,7 @@ namespace Mapbox.Example.Scripts.ModuleBehaviours
 	public class StaticApiLayerModuleScript : ModuleConstructorScript
 	{
 		public StaticLayerModuleSettings Settings;
-		private ILayerModule _layerModuleImplementation;
+		public override ILayerModule ModuleImplementation { get; protected set; }
 
 		private void Start()
 		{
@@ -36,8 +37,8 @@ namespace Mapbox.Example.Scripts.ModuleBehaviours
 				Settings.DataSettings.TilesetId = imageryTileset.Id;
 			}
 
-			_layerModuleImplementation = new StaticApiLayerModule(service.GetStaticRasterSource(Settings.DataSettings), Settings);
-			return _layerModuleImplementation;
+			ModuleImplementation = new StaticApiLayerModule(service.GetStaticRasterSource(Settings.DataSettings), Settings);
+			return ModuleImplementation;
 		}
 	}
 }

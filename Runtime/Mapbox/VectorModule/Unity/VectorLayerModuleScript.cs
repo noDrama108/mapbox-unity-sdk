@@ -14,7 +14,7 @@ namespace Mapbox.VectorModule.Unity
 		[SerializeField] private VectorModuleSettings vectorModuleSettings;
 		
 		[SerializeField] private List<VectorLayerVisualizerObject> _layerVisualizers;
-		private VectorLayerModule _layerModuleImplementation;
+		public override ILayerModule ModuleImplementation { get; protected set; }
 
 		public void Start()
 		{
@@ -29,8 +29,8 @@ namespace Mapbox.VectorModule.Unity
 				var visualizer = visualizerObject.ConstructLayerVisualizer(mapInformation, unityContext);
 				dictionary.Add(visualizer.VectorLayerName, visualizer);
 			}
-			_layerModuleImplementation = GetVectorLayerModule(mapInformation, unityContext, service, dictionary);
-			return _layerModuleImplementation;
+			ModuleImplementation = GetVectorLayerModule(mapInformation, unityContext, service, dictionary);
+			return ModuleImplementation;
 		}
 		
 		private VectorLayerModule GetVectorLayerModule(IMapInformation mapInformation, UnityContext unityContext,
@@ -51,7 +51,7 @@ namespace Mapbox.VectorModule.Unity
 
 		public override void OnDestroy()
 		{
-			_layerModuleImplementation?.OnDestroy();
+			ModuleImplementation?.OnDestroy();
 		}
 	}
 }
