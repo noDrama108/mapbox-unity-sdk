@@ -1,46 +1,59 @@
 using System;
+using System.Collections.Generic;
 using Mapbox.BaseModule.Utilities;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Mapbox.VectorModule.Filters
 {
 	[CreateAssetMenu(menuName = "Mapbox/Modifiers/Type Filter")]
 	public class TypeFilterObject : FilterBaseObject
 	{
-		public TypeFilter TypeFilter;
-		
-		public override bool Try(VectorFeatureUnity feature)
+		[NonSerialized] private TypeFilter _filter;
+		public TypeFilterSettings TypeFilterSettings;
+
+		public override ILayerFeatureFilterComparer Filter
 		{
-			return TypeFilter.Try(feature);
+			get
+			{
+				if (_filter == null)
+					_filter = new TypeFilter(TypeFilterSettings);
+				return _filter;
+			}
 		}
 	}
 	
 	[Serializable]
 	public class TypeFilter : FilterBase
 	{
-		public override string Key { get { return "type"; } }
-		[SerializeField]
-		private string[] _types;
-		[SerializeField]
-		private TypeFilterType _behaviour;
+		public TypeFilterSettings TypeFilterSettings;
+		private HashSet<string> _types;
+
+		public TypeFilter(TypeFilterSettings typeFilterSettings)
+		{
+			TypeFilterSettings = typeFilterSettings;
+		}
+		
+		public override void Initialize()
+		{
+			base.Initialize();
+			_types = new HashSet<string>();
+			foreach (var s in TypeFilterSettings.FilterString.Split(','))
+			{
+				_types.Add(s.Trim().ToLowerInvariant());
+			}
+		}
 
 		public override bool Try(VectorFeatureUnity feature)
 		{
-			var check = false;
-			for (int i = 0; i < _types.Length; i++)
-			{
-				if (_types[i].ToLowerInvariant() == feature.Properties["type"].ToString().ToLowerInvariant())
-				{
-					check = true;
-				}
-			}
-			return _behaviour == TypeFilterType.Include ? check : !check;
+			return _types.Contains(feature.Properties[TypeFilterSettings.PropertyName].ToString().ToLowerInvariant());
 		}
+	}
 
-		public enum TypeFilterType
-		{
-			Include,
-			Exclude
-		}
+	[Serializable]
+	public class TypeFilterSettings
+	{
+		public string PropertyName;
+		public string FilterString;
 	}
 }

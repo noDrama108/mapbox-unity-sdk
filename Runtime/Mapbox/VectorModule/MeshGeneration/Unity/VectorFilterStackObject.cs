@@ -10,6 +10,7 @@ namespace Mapbox.VectorModule.MeshGeneration.Unity
     [CreateAssetMenu(menuName = "Mapbox/Modifiers/Vector Filter Stack")]
     public class VectorFilterStackObject : ScriptableObject
     {
+        [Expandable]
         public List<FilterBaseObject> Filters;
         public LayerFilterCombinerOperationType Type;
 
@@ -17,7 +18,7 @@ namespace Mapbox.VectorModule.MeshGeneration.Unity
         {
             return new VectorFilterStack()
             {
-                Filters = Filters.Select(x => x as ILayerFeatureFilterComparer).ToList(),
+                Filters = Filters.Select(x => x.Filter).ToList(),
                 Type = this.Type
             };
         }
@@ -33,7 +34,12 @@ namespace Mapbox.VectorModule.MeshGeneration.Unity
         {
             
         }
-        
+
+        public void Initialize()
+        {
+            
+        }
+
         public bool Try(VectorFeatureUnity feature)
         {
             if (Filters == null || Filters.Count == 0)

@@ -93,6 +93,10 @@ namespace Mapbox.VectorModule
         public IEnumerator Initialize()
         {
             yield return _pool.InitializeItems(_defaultPoolSize);
+            foreach (var stack in _stackList)
+            {
+                stack.Value.Initialize();
+            }
         }
 
         public void AddModifierStack(List<ModifierStack> stack)

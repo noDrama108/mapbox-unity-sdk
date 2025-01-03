@@ -16,8 +16,11 @@ namespace Mapbox.VectorModule.MeshGeneration.Unity
 		private ModifierStack _modifierStack;
 		public ModifierStack GetModifierStack => _modifierStack;
 
+		[Expandable]
 		public VectorFilterStackObject Filters;
+		[Expandable]
 		public List<ScriptableMeshModifierObject> MeshModifiers;
+		[Expandable]
 		public List<ScriptableGameObjectModifierObject> GoModifiers;
 
 		public void Initialize(UnityContext unityContext = null)

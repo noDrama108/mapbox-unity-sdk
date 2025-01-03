@@ -3,21 +3,28 @@ using UnityEngine;
 
 namespace Mapbox.VectorModule.Filters
 {
-	public class FilterBaseObject : ScriptableObject, ILayerFeatureFilterComparer
+	public abstract class FilterBaseObject : ScriptableObject, IFilterObject
 	{
-		public virtual bool Try(VectorFeatureUnity feature)
-		{
-			return true;
-		}
+		public abstract ILayerFeatureFilterComparer Filter { get; }
 	}
 	
 	public class FilterBase : ILayerFeatureFilterComparer
 	{
 		public virtual string Key { get { return ""; } }
 
+		public virtual void Initialize()
+		{
+			
+		}
+		
 		public virtual bool Try(VectorFeatureUnity feature)
 		{
 			return true;
 		}
+	}
+
+	public interface IFilterObject
+	{
+		ILayerFeatureFilterComparer Filter { get; }
 	}
 }

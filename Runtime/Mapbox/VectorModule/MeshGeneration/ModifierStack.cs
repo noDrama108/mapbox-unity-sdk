@@ -28,6 +28,17 @@ namespace Mapbox.VectorModule.MeshGeneration
             MeshModifiers = new List<IMeshModifier>();
             GoModifiers = new List<IGameObjectModifier>();
         }
+        
+        public void Initialize()
+        {
+            if (Filters != null && Filters.Filters != null)
+            {
+                foreach (var filter in Filters.Filters)
+                {
+                    filter.Initialize();
+                }
+            }
+        }
 
         public MeshData RunMeshModifiers(VectorFeatureUnity feature, MeshData meshData, IMapInformation mapInfo)
         {

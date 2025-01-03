@@ -7,39 +7,52 @@ namespace Mapbox.VectorModule.Filters
     [CreateAssetMenu(menuName = "Mapbox/Modifiers/Height Filter")]
     public class HeightFilterObject : FilterBaseObject
     {
-        public HeightFilter HeightFilter;
+        private HeightFilter _filter;
+        public HeightFilterSettings HeightFilterSettings;
 
-        public override bool Try(VectorFeatureUnity feature)
+        public override ILayerFeatureFilterComparer Filter
         {
-            return HeightFilter.Try(feature);
+            get
+            {
+                if(_filter == null)
+                    _filter = new HeightFilter(HeightFilterSettings);
+                return _filter;
+            }
         }
     }
     
     [Serializable]
     public class HeightFilter : FilterBase
     {
-        public enum HeightFilterOptions
-        {
-            Above,
-            Below
-        }
+        public HeightFilterSettings HeightFilterSettings;
 
-        public override string Key { get { return "height"; } }
-        [SerializeField]
-        private float _height;
-        [SerializeField]
-        private HeightFilterOptions _type;
+        public HeightFilter(HeightFilterSettings heightFilterSettings)
+        {
+            HeightFilterSettings = heightFilterSettings;
+        }
 
         public override bool Try(VectorFeatureUnity feature)
         {
             var hg = System.Convert.ToSingle(feature.Properties[Key]);
-            if (_type == HeightFilterOptions.Above && hg > _height)
+            if (HeightFilterSettings.Type == HeightFilterOptions.Above && hg > HeightFilterSettings.Height)
                 return true;
-            if (_type == HeightFilterOptions.Below && hg < _height)
+            if (HeightFilterSettings.Type == HeightFilterOptions.Below && hg < HeightFilterSettings.Height)
                 return true;
 
             return false;
 
         }
+    }
+
+    public class HeightFilterSettings
+    {
+        public HeightFilterOptions Type;
+        public float Height;
+    }
+    
+    public enum HeightFilterOptions
+    {
+        Above,
+        Below
     }
 }
