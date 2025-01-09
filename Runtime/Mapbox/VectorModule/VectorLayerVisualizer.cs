@@ -1,0 +1,370 @@
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using Mapbox.BaseModule;
+using Mapbox.BaseModule.Map;
+using Mapbox.BaseModule.Utilities;
+using UnityEngine;
+using UnityEngine.Rendering;
+using System.Collections;
+using System.Linq;
+using Mapbox.BaseModule.Data;
+using Mapbox.BaseModule.Data.Tiles;
+using Mapbox.BaseModule.Unity;
+using Mapbox.VectorModule.MeshGeneration;
+using Mapbox.VectorTile;
+
+namespace Mapbox.VectorModule
+{
+    public interface IVectorLayerVisualizer
+    {
+        string VectorLayerName { get; }
+        void AddModifierStack(List<ModifierStack> stack);
+        Dictionary<int, HashSet<MeshData>> CreateMesh(CanonicalTileId tileId, VectorTileLayer layer);
+        List<GameObject> CreateGo(CanonicalTileId tileId, Dictionary<int, HashSet<MeshData>> meshData);
+        void UnregisterTile(CanonicalTileId tileId);
+        bool Active { get; set; }
+        IEnumerator Initialize();
+        Dictionary<int, ModifierStack> GetModStacks { get; }
+        void OnDestroy();
+        void UpdateForView(CanonicalTileId canonicalTileId, IMapInformation information);
+        void SetActive(CanonicalTileId tileId, bool isActive, IMapInformation mapInformation);
+        bool ContainsVisualFor(CanonicalTileId dataTileId);
+    }
+
+    [Serializable]
+    public class VectorLayerVisualizer : IVectorLayerVisualizer
+    {
+        public Dictionary<int, ModifierStack> GetModStacks => _stackList;
+        public string VectorLayerName => _vectorLayerName;
+        public bool Active { get; set; }
+
+        private string _vectorLayerName;
+        private UnityContext _unityContext;
+        private bool _mergeMeshes; 
+        private Dictionary<int, ModifierStack> _stackList;
+        private ObjectPool<VectorEntity> _pool;
+        private Dictionary<CanonicalTileId, List<VectorEntity>> _results;
+        private IMapInformation _mapInformation;
+        private int _defaultPoolSize = 20;
+        private Transform _layerRootObject;
+        
+        public VectorLayerVisualizer(string name, IMapInformation mapInformation, UnityContext unityContext, bool mergeMeshes = false)
+        {
+            _vectorLayerName = name;
+            _mapInformation = mapInformation;
+            _unityContext = unityContext;
+            _mergeMeshes = mergeMeshes;
+            _stackList = new Dictionary<int, ModifierStack>();
+            _pool = new ObjectPool<VectorEntity>(VectorEntityGenerator);
+            _results = new Dictionary<CanonicalTileId, List<VectorEntity>>();
+            _layerRootObject = new GameObject(_vectorLayerName + " layer objects").transform;
+            _layerRootObject.SetParent(_unityContext.RuntimeGenerationRoot);
+        }
+
+        public void UpdateForView(CanonicalTileId canonicalTileId, IMapInformation information)
+        {
+            if (_results.TryGetValue(canonicalTileId, out var visuals))
+            {
+                foreach (var entity in visuals)
+                {
+                    _mapInformation.PositionObjectFor(entity.GameObject, canonicalTileId);
+                }
+            }
+        }
+
+        public void SetActive(CanonicalTileId canonicalTileId, bool isActive, IMapInformation mapInformation)
+        {
+            if (_results.TryGetValue(canonicalTileId, out var visuals))
+            {
+                foreach (var entity in visuals)
+                {
+                    entity.GameObject.SetActive(isActive);
+                    //_mapInformation.PositionObjectFor(entity.GameObject, canonicalTileId);
+                }
+            }
+        }
+        
+        public bool ContainsVisualFor(CanonicalTileId dataTileId)
+        {
+            return _results.ContainsKey(dataTileId);
+        }
+
+        public IEnumerator Initialize()
+        {
+            yield return _pool.InitializeItems(_defaultPoolSize);
+        }
+
+        public void AddModifierStack(List<ModifierStack> stack)
+        {
+            foreach (var modifierStack in stack)
+            {
+                _stackList.Add(modifierStack.GetHashCode(), modifierStack);
+            }
+        }
+
+        public virtual Dictionary<int, HashSet<MeshData>> CreateMesh(CanonicalTileId tileId, VectorTileLayer layer)
+        {
+            var meshData = new Dictionary<int, HashSet<MeshData>>();
+            MeshModifications(tileId, layer, meshData);
+            return meshData;
+        }
+
+        public virtual List<GameObject> CreateGo(CanonicalTileId tileId, Dictionary<int, HashSet<MeshData>> meshData)
+        {
+            var objects =  GameObjectModifications(tileId, meshData);
+            return objects;
+        }
+
+        public virtual void UnregisterTile(CanonicalTileId tileId)
+        {
+            if (_results.ContainsKey(tileId))
+            {
+                foreach (var entity in _results[tileId])
+                {
+                    entity.GameObject.SetActive(false);
+                    _pool.Put(entity);
+                    OnVectorMeshDestroyed(entity.GameObject);
+                }
+
+                _results.Remove(tileId);
+            }
+        }
+        
+        public void OnDestroy()
+        {
+            foreach (var entities in _results.Values)
+            {
+                foreach (var entity in entities)
+                {
+                    OnVectorMeshDestroyed(entity.GameObject);
+                    GameObject.Destroy(entity.GameObject);
+                }
+            }
+
+            _results.Clear();
+            _pool.Clear();
+        }
+
+        protected void MeshModifications(CanonicalTileId canonicalTileId, VectorTileLayer layer, Dictionary<int, HashSet<MeshData>> meshDataList)
+        {
+            for (int i = 0; i < layer.FeatureCount(); i++)
+            {
+                var featureResult = GetFeature(layer, i);
+                if (featureResult == null)
+                    continue;
+                featureResult.TileId = canonicalTileId;
+
+                foreach (var stack in _stackList)
+                {
+                    if (stack.Value.Filters != null && !stack.Value.Filters.Try(featureResult))
+                        continue;
+                    
+                    var meshData = new MeshData();
+                    meshData.Feature = featureResult;
+                    meshData = stack.Value.RunMeshModifiers(featureResult, meshData, _mapInformation);
+                    
+                    if (!meshDataList.ContainsKey(stack.Key)) meshDataList.Add(stack.Key, new HashSet<MeshData>());
+                    meshDataList[stack.Key].Add(meshData);
+                }
+            }
+
+            // if (!tile.IsActive)
+            //     return;
+
+            if (_mergeMeshes)
+            {
+                foreach (var pairs in meshDataList)
+                {
+                    var mergedData = CombineMeshData(pairs.Value);
+                    pairs.Value.Clear();
+                    pairs.Value.Add(mergedData);
+                }
+            }
+        }
+
+        protected List<GameObject> GameObjectModifications(CanonicalTileId canonicalTileId, Dictionary<int, HashSet<MeshData>> meshDataList)
+        {
+            // if (!tile.IsActive)
+            //     return null;
+
+            var objectList = new List<GameObject>();
+            foreach (var pair in meshDataList)
+            {
+                foreach (var meshData in pair.Value)
+                {
+                    var entity = CreateObject(meshData, " go");
+                    entity.Feature = meshData.Feature;
+                    entity.GameObject.name = VectorLayerName + " " + canonicalTileId.ToString();
+                    _mapInformation.PositionObjectFor(entity.GameObject, canonicalTileId);
+                    _stackList[pair.Key].RunGoModifiers(entity, _mapInformation);
+                    objectList.Add(entity.GameObject);
+                    
+                    if(!_results.ContainsKey(canonicalTileId))
+                        _results.Add(canonicalTileId, new List<VectorEntity>());
+                    _results[canonicalTileId].Add(entity);
+                    OnVectorMeshCreated(entity.GameObject);
+                }
+            }
+
+            return objectList;
+        }
+        
+        protected VectorFeatureUnity GetFeature(VectorTileLayer layer, int i)
+        {
+            var feature = layer.GetFeature(i);
+            var layerExtent = (float)layer.Extent;
+            var featureResult = new VectorFeatureUnity();
+            featureResult.Properties = feature.GetProperties();
+
+            var geometry = feature.Geometry<float>(0);
+            var points = new List<List<Vector3>>();
+            foreach (var t in geometry)
+            {
+                var pointCount = t.Count;
+                var newPoints = new List<Vector3>(pointCount);
+                for (int k = 0; k < pointCount; k++)
+                {
+                    var point = t[k];
+                    newPoints.Add(new Vector3(
+                    point.X / layerExtent,
+                    0, 
+                    -1 * (point.Y / layerExtent)));
+                }
+
+                points.Add(newPoints);
+            }
+
+            featureResult.Points = points;
+            if (featureResult.Points.Count < 1)
+            {
+                return null;
+            }
+            featureResult.Data = feature;
+            return featureResult;
+        }
+
+        protected VectorEntity CreateObject(MeshData meshData, string name)
+        {
+            var tempVectorEntity = _pool.GetObject();
+
+            // It is possible that we changed scenes in the middle of map generation.
+            // This object can be null as a result of Unity cleaning up game objects in the scene.
+            // Let's bail if we don't have our object.
+            if (tempVectorEntity.GameObject == null)
+            {
+                return null;
+            }
+
+            tempVectorEntity.GameObject.name = name;
+            tempVectorEntity.GameObject.SetActive(false);
+            tempVectorEntity.Mesh.Clear();
+            tempVectorEntity.Mesh.SetMeshValues(meshData);
+
+            tempVectorEntity.Transform.localPosition = meshData.PositionInTile;
+
+            return tempVectorEntity;
+        }
+
+        protected MeshData CombineMeshData(HashSet<MeshData> meshDataList)
+        {
+            var mergedData = new MeshData();
+            var _counter = meshDataList.Count;
+            foreach (var currentData in meshDataList)
+            {
+                if (currentData.Vertices.Count <= 3)
+                    continue;
+
+                var st = mergedData.Vertices.Count;
+                mergedData.Vertices.AddRange(currentData.Vertices);
+                mergedData.Normals.AddRange(currentData.Normals);
+                mergedData.Tangents.AddRange(currentData.Tangents);
+
+                var c2 = currentData.UV.Count;
+                for (int j = 0; j < c2; j++)
+                {
+                    if (mergedData.UV.Count <= j)
+                    {
+                        mergedData.UV.Add(new List<Vector2>(currentData.UV[j].Count));
+                    }
+                }
+
+                c2 = currentData.UV.Count;
+                for (int j = 0; j < c2; j++)
+                {
+                    mergedData.UV[j].AddRange(currentData.UV[j]);
+                }
+
+                c2 = currentData.Triangles.Count;
+                for (int j = 0; j < c2; j++)
+                {
+                    if (mergedData.Triangles.Count <= j)
+                    {
+                        mergedData.Triangles.Add(new List<int>(currentData.Triangles[j].Count));
+                    }
+                }
+
+                for (int j = 0; j < c2; j++)
+                {
+                    for (int k = 0; k < currentData.Triangles[j].Count; k++)
+                    {
+                        mergedData.Triangles[j].Add(currentData.Triangles[j][k] + st);
+                    }
+                }
+            }
+
+            return mergedData;
+        }
+        
+        private VectorEntity VectorEntityGenerator()
+        {
+            var go = new GameObject(VectorLayerName + " pool item");
+            go.transform.SetParent(_layerRootObject, false);
+            var mf = go.AddComponent<MeshFilter>();
+            mf.sharedMesh = new Mesh();
+            mf.sharedMesh.name = "feature";
+            var mr = go.AddComponent<MeshRenderer>();
+            var tempVectorEntity = new VectorEntity()
+            {
+                GameObject = go,
+                Transform = go.transform,
+                MeshFilter = mf,
+                MeshRenderer = mr,
+                Mesh = mf.sharedMesh
+            };
+            return tempVectorEntity;
+        }
+        
+        public Action<GameObject> OnVectorMeshCreated = list => { };
+        public Action<GameObject> OnVectorMeshDestroyed = go => { };
+        
+
+        // private void ClearObjectOnUnregister(UnityMapTile tile)
+        // {
+        // 	if (_activeObjects.ContainsKey(tile))
+        // 	{
+        // 		var counter = _activeObjects[tile].Count;
+        // 		for (int i = 0; i < counter; i++)
+        // 		{
+        // 			// foreach (var item in GoModifiers)
+        // 			// {
+        // 			// 	item.OnPoolItem(_activeObjects[tile][i]);
+        // 			// }
+        // 			if (null != _activeObjects[tile][i].GameObject)
+        // 			{
+        // 				_activeObjects[tile][i].GameObject.SetActive(false);
+        //             }
+        //
+        // 			_pool.Put(_activeObjects[tile][i]);
+        // 		}
+        //
+        // 		_activeObjects[tile].Clear();
+        //
+        // 		//pooling these lists as they'll reused anyway, saving hundreds of list instantiations
+        // 		_listPool.Put(_activeObjects[tile]);
+        // 		_activeObjects.Remove(tile);
+        // 	}
+        // }
+        
+    }
+}

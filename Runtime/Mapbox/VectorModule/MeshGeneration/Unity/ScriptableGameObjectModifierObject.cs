@@ -1,0 +1,40 @@
+using Mapbox.BaseModule.Map;
+using Mapbox.BaseModule.Unity;
+using Mapbox.BaseModule.Utilities;
+using Mapbox.VectorModule.MeshGeneration.GameObjectModifiers;
+using UnityEngine;
+
+namespace Mapbox.VectorModule.MeshGeneration.Unity
+{
+    public abstract class ScriptableGameObjectModifierObject : ScriptableObject, IGameObjectModifier
+    {
+        protected abstract GameObjectModifier _gameObjectModifierImplementation { get; }
+
+        public abstract void ConstructModifier(UnityContext unityContext);
+		
+        public void Run(VectorEntity ve, IMapInformation mapInformation)
+        {
+            _gameObjectModifierImplementation.Run(ve, mapInformation);
+        }
+
+        public void OnPoolItem(VectorEntity vectorEntity)
+        {
+            _gameObjectModifierImplementation.OnPoolItem(vectorEntity);
+        }
+
+        public void Clear()
+        {
+            _gameObjectModifierImplementation.Clear();
+        }
+
+        public void ClearCaches()
+        {
+            _gameObjectModifierImplementation.ClearCaches();
+        }
+
+        public void Unregister(UnityMapTile tile)
+        {
+            _gameObjectModifierImplementation.Unregister(tile);
+        }
+    }
+}
