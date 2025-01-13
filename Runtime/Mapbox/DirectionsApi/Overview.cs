@@ -4,7 +4,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-namespace Mapbox.Directions
+namespace Mapbox.DirectionsApi
 {
 	/// <summary> 
 	///     Type of returned overview geometry. Can be  full (the most detailed geometry available),  

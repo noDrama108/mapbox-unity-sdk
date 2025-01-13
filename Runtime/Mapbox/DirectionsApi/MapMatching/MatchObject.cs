@@ -4,10 +4,10 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using Mapbox.Directions.Response;
+using Mapbox.DirectionsApi.Response;
 using Newtonsoft.Json;
 
-namespace Mapbox.Directions.MapMatching
+namespace Mapbox.DirectionsApi.MapMatching
 {
 	/// <summary>
 	/// A Match object from a Map Matching API call.

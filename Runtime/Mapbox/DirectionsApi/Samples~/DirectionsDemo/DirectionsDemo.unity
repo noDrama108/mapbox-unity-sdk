@@ -1035,9 +1035,24 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   MapCore: {fileID: 1316629399}
-  DataFetchingManager: {fileID: 2054936220}
+  _camera: {fileID: 0}
   Label: {fileID: 246213450}
   _labelFormat: 'Distance : {0}'
+  FirstPoint: {x: 0, y: 0, z: 0}
+  FirstLatLng:
+    Latitude: 0
+    Longitude: 0
+  SecondPoint: {x: 0, y: 0, z: 0}
+  SecondLatLng:
+    Latitude: 0
+    Longitude: 0
+  IsFirstPointSet: 0
+  IsSecondPointSet: 0
+  startMarker: {fileID: 0}
+  finishMarker: {fileID: 0}
+  _gos: []
+  _goScale: 50
+  _material: {fileID: 0}
   RoutingOption: 0
 --- !u!4 &1976003820
 Transform:

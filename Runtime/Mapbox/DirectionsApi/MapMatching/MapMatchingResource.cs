@@ -10,7 +10,7 @@ using System.Linq;
 using Mapbox.BaseModule.Data.Platform;
 using Mapbox.BaseModule.Data.Vector2d;
 
-namespace Mapbox.Directions.MapMatching
+namespace Mapbox.DirectionsApi.MapMatching
 {
 	/// <summary> Base geocode class. </summary>
 	/// <typeparam name="T"> Type of Query field (either string or LatLng). </typeparam>

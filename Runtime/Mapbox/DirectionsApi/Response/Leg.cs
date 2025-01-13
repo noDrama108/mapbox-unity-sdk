@@ -7,7 +7,7 @@
 using System.Collections.Generic;
 using Newtonsoft.Json;
 
-namespace Mapbox.Directions.Response
+namespace Mapbox.DirectionsApi.Response
 {
 	/// <summary>
 	/// A Leg from a Directions API call.

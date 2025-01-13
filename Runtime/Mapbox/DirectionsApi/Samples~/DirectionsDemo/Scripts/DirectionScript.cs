@@ -9,20 +9,20 @@ using Mapbox.BaseModule.Data.Platform.Cache;
 using Mapbox.BaseModule.Data.Vector2d;
 using Mapbox.BaseModule.Map;
 using Mapbox.BaseModule.Utilities;
-using Mapbox.Directions;
+using Mapbox.DirectionsApi;
 using Mapbox.Example.Scripts.ModuleBehaviours;
 using UnityEngine;
 using UnityEngine.Serialization;
 using UnityEngine.UI;
 
-namespace Mapbox.Directions.Samples
+namespace Mapbox.DirectionsApi.Samples
 {
 	public class DirectionScript : MonoBehaviour
 	{
 		public MapBehaviourCore MapCore;
 		private IFileSource _fileSource;
 		private IMapInformation _mapInformation;
-		private Directions _directions;
+		private DirectionsApi _directions;
 		private Camera _camera;
 
 		public GameObject Label;
@@ -70,7 +70,7 @@ namespace Mapbox.Directions.Samples
 			{
 				if (_fileSource == null)
 					_fileSource = map.MapService.FileSource;
-				_directions = new Directions(_fileSource);
+				_directions = new DirectionsApi(_fileSource);
 				_mapInformation = map.mapInformation;
 			};
 		}

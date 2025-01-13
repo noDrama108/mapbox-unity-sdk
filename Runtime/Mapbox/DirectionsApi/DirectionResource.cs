@@ -8,8 +8,9 @@ using System.Linq;
 using Mapbox.BaseModule.Data.Platform;
 using Mapbox.BaseModule.Data.Vector2d;
 using Mapbox.BaseModule.Utilities;
+using Mapbox.Utils;
 
-namespace Mapbox.Directions
+namespace Mapbox.DirectionsApi
 {
     using System;
     using System.Collections.Generic;

@@ -4,10 +4,10 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System;
-
-namespace Mapbox.Directions
+namespace Mapbox.Utils
 {
+	using System;
+
 	/// <summary> 
 	///     Represents a bearing filter, composed of a bearing in decimal angular degrees, with a +/- range 
 	///     also in angular degrees. 

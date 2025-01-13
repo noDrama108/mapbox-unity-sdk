@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace Mapbox.Directions.Samples
+namespace Mapbox.DirectionsApi.Samples
 {
     public class DragableDirectionWaypoint : MonoBehaviour
     {

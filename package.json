@@ -26,7 +26,7 @@
         {
             "displayName": "Directions Api Demo",
             "description": "Directions Api Demo",
-            "path": "Runtime/Mapbox/Directions/Samples~/DirectionsDemo"
+            "path": "Runtime/Mapbox/DirectionsApi/Samples~/DirectionsDemo"
         }
     ]
 }

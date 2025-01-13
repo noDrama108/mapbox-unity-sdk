@@ -10,7 +10,7 @@ using Mapbox.BaseModule.Data.Platform;
 using Mapbox.BaseModule.Utilities.JsonConverters;
 using Newtonsoft.Json;
 
-namespace Mapbox.Directions.MapMatching
+namespace Mapbox.DirectionsApi.MapMatching
 {
 	/// <summary>
 	///     Wrapper around the <see href="https://www.mapbox.com/api-documentation/navigation/#map-matching">

@@ -4,18 +4,17 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using Mapbox.BaseModule.Data.DataFetchers;
+using System;
+using System.Text;
 using Mapbox.BaseModule.Data.Platform;
 using Mapbox.BaseModule.Utilities.JsonConverters;
-using Mapbox.Directions.Response;
+using Mapbox.DirectionsApi;
+using Mapbox.DirectionsApi.Response;
 using Newtonsoft.Json;
 
-namespace Mapbox.Directions
+namespace Mapbox.DirectionsApi
 {
-    using System;
-    using System.Text;
-
-    /// <summary>
+	/// <summary>
     ///     Wrapper around the <see href="https://www.mapbox.com/api-documentation/navigation/#directions">
     ///     Mapbox Directions API</see>. The Mapbox Directions API will show you how to get where
     ///     you're going.

@@ -8,7 +8,7 @@ using Mapbox.BaseModule.Data.Vector2d;
 using Mapbox.BaseModule.Utilities.JsonConverters;
 using Newtonsoft.Json;
 
-namespace Mapbox.Directions.Response
+namespace Mapbox.DirectionsApi.Response
 {
 	/// <summary>
     /// A Waypoint from a Directions API call.
