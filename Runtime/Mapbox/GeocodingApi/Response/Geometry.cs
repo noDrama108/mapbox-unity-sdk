@@ -8,7 +8,8 @@ using Mapbox.BaseModule.Data.Vector2d;
 using Mapbox.BaseModule.Utilities.JsonConverters;
 using Newtonsoft.Json;
 
-namespace Mapbox.Geocoding {
+namespace Mapbox.GeocodingApi
+{
     using System;
 
     /// <summary> Point geometry representing location of geocode result. </summary>

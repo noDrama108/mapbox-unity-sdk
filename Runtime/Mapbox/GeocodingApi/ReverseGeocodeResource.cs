@@ -7,25 +7,25 @@
 using Mapbox.BaseModule.Data.Vector2d;
 using Mapbox.BaseModule.Utilities;
 
-namespace Mapbox.Geocoding
+namespace Mapbox.GeocodingApi
 {
     using System.Collections.Generic;
 
     /// <summary> A reverse geocode request. </summary>
-    public sealed class ReverseGeocodeResource : GeocodeResource<Vector2d>
+    public sealed class ReverseGeocodeResource : GeocodeResource<LatitudeLongitude>
 	{
 		// Required
-		private Vector2d query;
+		private LatitudeLongitude query;
 
 		/// <summary> Initializes a new instance of the <see cref="ReverseGeocodeResource" /> class.</summary>
 		/// <param name="query"> Location to reverse geocode. </param>
-		public ReverseGeocodeResource(Vector2d query)
+		public ReverseGeocodeResource(LatitudeLongitude query)
 		{
 			this.Query = query;
 		}
 
 		/// <summary> Gets or sets the location. </summary>
-		public override Vector2d Query {
+		public override LatitudeLongitude Query {
 			get {
 				return this.query;
 			}
@@ -49,7 +49,7 @@ namespace Mapbox.Geocoding
 			return Constants.Map.BaseAPI +
 							this.ApiEndpoint +
 							this.Mode +
-							this.Query.ToString() +
+							this.Query.ToStringLonLat() +
 							".json" +
 							EncodeQueryString(opts);
 		}

@@ -24,9 +24,15 @@
             "path": "Samples~/WorldMapViewer"
         },
         {
+
             "displayName": "Directions Api Demo",
             "description": "Directions Api Demo",
             "path": "Runtime/Mapbox/DirectionsApi/Samples~/DirectionsDemo"
+        },
+        {
+            "displayName": "Geocoding Api Demo",
+            "description": "Geocoding Api Demo",
+            "path": "Runtime/Mapbox/GeocodingApi/Samples~/Geocoding"
         }
     ]
 }

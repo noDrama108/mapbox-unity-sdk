@@ -6,7 +6,8 @@
 
 using Newtonsoft.Json;
 
-namespace Mapbox.Geocoding {
+namespace Mapbox.GeocodingApi
+{
 	using System;
 	using System.Collections.Generic;
 

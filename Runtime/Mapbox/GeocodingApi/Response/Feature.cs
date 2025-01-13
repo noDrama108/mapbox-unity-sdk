@@ -9,7 +9,8 @@ using Mapbox.BaseModule.Data.Vector2d;
 using Mapbox.BaseModule.Utilities.JsonConverters;
 using Newtonsoft.Json;
 
-namespace Mapbox.Geocoding {
+namespace Mapbox.GeocodingApi
+{
     using System;
     using System.Collections.Generic;
 

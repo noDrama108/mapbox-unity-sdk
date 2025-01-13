@@ -6,7 +6,7 @@
 
 using Mapbox.BaseModule.Data.Platform;
 
-namespace Mapbox.Geocoding
+namespace Mapbox.GeocodingApi
 {
 	using System;
 	using System.Collections.Generic;
