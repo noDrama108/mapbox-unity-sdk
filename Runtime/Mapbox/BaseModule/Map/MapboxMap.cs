@@ -73,7 +73,7 @@ namespace Mapbox.BaseModule.Map
         
         public void OnDestroy()
         {
-            MapVisualizer.OnDestroy();
+            MapVisualizer?.OnDestroy();
             _mapService.OnDestroy();
         }
 
