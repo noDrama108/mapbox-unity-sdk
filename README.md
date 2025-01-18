@@ -63,7 +63,7 @@ The integration process depends heavily on your project setup and how you intend
 
 The Mapbox Unity SDK provides two primary methods for working with location:
 
-#### 1. Latitude and Longitude Field in the Map Script
+##### 1. Latitude and Longitude Field in the Map Script
 
 - The **Mapbox Map Behaviour** script includes a field for latitude and longitude.  
 - If the `Initialize On Start` checkbox is enabled:
@@ -77,29 +77,52 @@ The Mapbox Unity SDK provides two primary methods for working with location:
 **Usage in the Location-Based Game Demo Scene**:  
 - You can move the `CharTarget` game object within the scene. The Astronaut character will walk toward this object in Unity space.
 
----
 
-### 2. Using the LocationModule System
+##### 2. Using the LocationModule System
 
 For a more advanced and dynamic solution, you can use the **LocationModule** system. This method is used by default in the Location-Based Game demo scene.
 
-#### Overview:
+###### Overview:
 - The LocationModule system abstracts location handling:  
   - In builds: Uses the device's location.  
   - In the editor: Uses predefined location values.  
 - Predefined values can be configured in the **LocationModule** game object located under the map prefab.
 
-#### Steps to Use the LocationModule System:
-1. **Disable `Initialize On Start`**  
+###### Steps to Use the LocationModule System:
+Step 1. **Disable `Initialize On Start`**  
    - Uncheck the `Initialize On Start` checkbox in the map script.
 
-2. **Add `Snap Map To Location Provider`**  
+Step 2. **Add `Snap Map To Location Provider`**  
    - Attach the `Snap Map To Location Provider` script to your map.  
    - Set it up as shown in the provided documentation or image reference.
 
-3. **Enable Player Movement with Device Location**  
+Step 3. **Enable Player Movement with Device Location**  
    - Attach the `Snap Transform To Location Provider` script to the **`CharTarget`** game object.  
    - Configure the script to update the position of the `CharTarget` object with the device's location in real-time.  
    - The player avatar will automatically follow the `CharTarget` object as it moves.
 
 By following these steps, your map will dynamically update based on the device's location, and the player avatar will respond to real-world movements.
+
+---
+
+###  Building Your Map Application for Android
+
+To build your map application for the Android platform, you'll need specific settings files included in the Mapbox Unity SDK package. Follow these steps:
+
+##### Step 1: Copy Required Files
+- Copy the `Mapbox Unity SDK/Runtime/Plugins` folder into your project, placing it under the `Assets` folder.
+
+###### Step 1b: Merging Custom Android Settings (if applicable)
+- If your project already contains custom Android settings, merge them with the copied files to ensure compatibility.
+
+##### Step 2: Verify Player Settings
+- Open **Project Settings** and navigate to the **Player** section.
+- Under the **Publish Settings** section (at the bottom), verify the following fields:
+  - `Custom Manifest`
+  - `Custom Gradle`
+  - `Custom Main Gradle`
+- Ensure these fields are automatically set by Unity and reference the files you just copied.
+
+##### Step 3: Build Your Application
+- After completing the above steps, build your application for the Android platform.
+
