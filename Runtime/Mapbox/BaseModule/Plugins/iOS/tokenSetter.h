@@ -7,4 +7,5 @@ extern "C" {
     void setEventsCollectionStateForEnableCollection(bool state);
     void sendTurnstileEvent(const char* sdkIdentifier, const char* version);
     void sendSdkEvent(const char* sdkIdentifier, const char* version);
+    char* getUserSKUToken();
 }

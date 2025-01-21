@@ -18,6 +18,19 @@ NSString* CreateNSString (const char* string)
         return [NSString stringWithUTF8String: ""];
 }
 
+char* convertNSStringToCString(const NSString* nsString)
+{
+    if (nsString == NULL)
+        return NULL;
+
+    const char* nsStringUtf8 = [nsString UTF8String];
+    //create a null terminated C string on the heap so that our string's memory isn't wiped out right after method's return
+    char* cString = (char*)malloc(strlen(nsStringUtf8) + 1);
+    strcpy(cString, nsStringUtf8);
+
+    return cString;
+}
+
 void setAccessTokenForToken(const char* token) {
   [MBXMapboxOptions setAccessTokenForToken: [[NSString alloc] initWithCString: token encoding:NSUTF8StringEncoding]];
 }
@@ -66,6 +79,13 @@ void sendSdkEvent(const char* sdkIdentifier, const char* sdkversion)
                                                callback:^(MBXBillingServiceError * _Nonnull error) {
         // No action needed in this block
     }];
+}
+
+char* getUserSKUToken() 
+{
+    MBXBillingService *service = [MBXBillingServiceFactory getInstance];
+    const NSString *nsStringUtf8 = [service getUserSKUTokenForSkuIdentifier:MBXUserSKUIdentifierMapsMAUS];
+    return convertNSStringToCString(nsStringUtf8);
 }
 
 

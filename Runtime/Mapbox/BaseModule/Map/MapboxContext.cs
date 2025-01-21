@@ -83,6 +83,7 @@ namespace Mapbox.BaseModule.Map
                 _telemetryLibrary.Initialize(Configuration.AccessToken);
                 _telemetryLibrary.SetLocationCollectionState(GetTelemetryCollectionState());
                 _telemetryLibrary.SendTurnstile();
+                _telemetryLibrary.SendSdkEvent();
             }
             catch (Exception ex)
             {

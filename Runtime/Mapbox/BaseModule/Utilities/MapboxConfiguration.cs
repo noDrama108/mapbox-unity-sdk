@@ -1,17 +1,51 @@
 using System;
+#if UNITY_EDITOR
 using MapboxAccountsUnity;
+#endif
 using UnityEngine;
+using System.Runtime.InteropServices;
 
 namespace Mapbox.BaseModule.Utilities
 {
 	public class MapboxConfiguration
 	{
-		[NonSerialized] private MapboxAccounts mapboxAccounts = new MapboxAccounts();
-
 		public string AccessToken;
-		public string GetMapsSkuToken()
-		{
-			return mapboxAccounts.ObtainMapsSkuUserToken(Application.persistentDataPath);
-		}
+		
+		#if UNITY_EDITOR
+			[NonSerialized] private MapboxAccounts mapboxAccounts = new MapboxAccounts();
+
+			public string GetMapsSkuToken()
+			{
+				return mapboxAccounts.ObtainMapsSkuUserToken(Application.persistentDataPath);
+			}
+			
+		#elif UNITY_IOS
+			[DllImport("__Internal")] private static extern string getUserSKUToken();
+		
+			public string GetMapsSkuToken()
+			{
+				return getUserSKUToken();
+			}
+		#elif UNITY_ANDROID
+			private string _mapboxBillingServiceClassName = "com.mapbox.common.BillingService";
+			private string _mapboxBillingServiceFactoryClassName = "com.mapbox.common.BillingServiceFactory";
+			private string _mapboxBillingFactoryGetMethodName = "getInstance";
+			private string _mapboxSdkInformationClassName = "com.mapbox.common.SdkInformation";
+			private string _mapboxUserSkuIdentifierClassName = "com.mapbox.common.UserSKUIdentifier";
+			private string _mapsMausEnumName = "MAPS_MAUS";
+			private string _mapboxSdkInformationName = "Unity_SDK";
+			private string _mapboxSdkInformationVersion = "3.0.0";
+			private string _mapboxSdkInformationPackageName = "package_Name";
+			private string _mapboxSkuTokenMethodName = "getUserSKUToken";
+		
+			public string GetMapsSkuToken()
+			{
+				var billingServiceFactory = new AndroidJavaClass(_mapboxBillingServiceFactoryClassName);
+				var billingService = billingServiceFactory.CallStatic<AndroidJavaObject>(_mapboxBillingFactoryGetMethodName);
+			
+				var skuid = new AndroidJavaObject(_mapboxUserSkuIdentifierClassName);
+				return billingService.Call<string>(_mapboxSkuTokenMethodName, skuid.GetStatic<AndroidJavaObject>(_mapsMausEnumName));
+			}
+		#endif
 	}
 }
