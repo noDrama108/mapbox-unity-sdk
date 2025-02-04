@@ -37,5 +37,13 @@ namespace Mapbox.BaseModule.Map
             go.transform.localPosition = topLeftValues;
             go.transform.localScale = Vector3.one * tileSize;
         }
+        
+        public static void PositionObjectFor(this IMapInformation mapInfo, CanonicalTileId tileId, out Vector3 position, out Vector3 scale)
+        {
+            var topLeftValues = Conversions.TileTopLeftInUnitySpace(tileId, mapInfo.CenterMercator, mapInfo.Scale);
+            var tileSize = Conversions.TileSizeInUnitySpace(tileId.Z, mapInfo.Scale);
+            position = topLeftValues;
+            scale = Vector3.one * tileSize;
+        }
     }
 }
