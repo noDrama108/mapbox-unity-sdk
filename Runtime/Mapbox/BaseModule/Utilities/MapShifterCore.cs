@@ -1,4 +1,5 @@
 using Mapbox.BaseModule.Map;
+using Mapbox.BaseModule.Unity;
 using UnityEngine;
 
 namespace Mapbox.BaseModule.Utilities
@@ -8,9 +9,11 @@ namespace Mapbox.BaseModule.Utilities
         private IMapInformation _mapInformation;
         private Vector2 _shiftRange;
         private Camera _camera;
+        private UnityContext _unityContext;
 
-        public MapShifterCore(IMapInformation mapInfo, Camera camera, Vector2 shiftRange)
+        public MapShifterCore(IMapInformation mapInfo, UnityContext unityContext, Camera camera, Vector2 shiftRange)
         {
+            _unityContext = unityContext;
             _mapInformation = mapInfo;
             _camera = camera;
             _shiftRange = shiftRange;
@@ -30,6 +33,7 @@ namespace Mapbox.BaseModule.Utilities
             {
                 var centerLatLng = _mapInformation.ConvertPositionToLatLng(viewCenterPosition);
                 _mapInformation.SetLatitudeLongitude(centerLatLng);
+                _unityContext.RuntimeGenerationRoot.position -= viewCenterPosition;
             }
         }
 

@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using Mapbox.BaseModule.Data.Interfaces;
 using Mapbox.BaseModule.Data.Vector2d;
+using Mapbox.BaseModule.Unity;
 using Mapbox.BaseModule.Utilities;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -12,15 +13,17 @@ namespace Mapbox.BaseModule.Map
     public sealed class MapboxMap
     {
         [NonSerialized] public IMapInformation mapInformation;
+        [NonSerialized] public UnityContext UnityContext;
         [NonSerialized] public IMapVisualizer MapVisualizer;
         [NonSerialized] public TileCover TileCover;
         [NonSerialized] public InitializationStatus Status = InitializationStatus.WaitingForInitialization;
         
         private MapService _mapService;
         
-        public MapboxMap(IMapInformation information, MapService mapService)
+        public MapboxMap(IMapInformation information, UnityContext unityContext, MapService mapService)
         {
             mapInformation = information;
+            UnityContext = unityContext;
             TileCover = new TileCover();
             _mapService = mapService;
         }

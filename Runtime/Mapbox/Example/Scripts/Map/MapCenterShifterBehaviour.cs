@@ -17,7 +17,7 @@ namespace Mapbox.Example.Scripts.Map
             MapBehaviour.Initialized += (map) =>
             {
                 _map = map;
-                _mapShifterCore = new MapShifterCore(_map.mapInformation, Camera, ShiftRange);
+                _mapShifterCore = new MapShifterCore(_map.mapInformation, _map.UnityContext, Camera, ShiftRange);
             };
         }
 
