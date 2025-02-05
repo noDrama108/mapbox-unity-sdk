@@ -41,9 +41,9 @@ namespace Mapbox.Example.Scripts.Map
 
             foreach (var buildingInfo in Buildings)
             {
-                var worldPosition = Map.mapInformation.ConvertLatLngToPosition(buildingInfo.LatitudeLongitude);
+                var worldPosition = Map.MapInformation.ConvertLatLngToPosition(buildingInfo.LatitudeLongitude);
                 buildingInfo.Object.transform.position = worldPosition;
-                buildingInfo.Object.transform.localScale = Vector3.one / Map.mapInformation.Scale * (1 / Mathf.Cos(Mathf.Deg2Rad * (float)Map.mapInformation.LatitudeLongitude.Latitude));
+                buildingInfo.Object.transform.localScale = Vector3.one / Map.MapInformation.Scale * (1 / Mathf.Cos(Mathf.Deg2Rad * (float)Map.MapInformation.LatitudeLongitude.Latitude));
             }
         }
     }

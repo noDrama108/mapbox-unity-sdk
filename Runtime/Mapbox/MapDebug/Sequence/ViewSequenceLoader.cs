@@ -22,7 +22,7 @@ namespace Mapbox.MapDebug.Sequence
             var sequence = parser.ParseSequence((JObject) mapInfo);
 
             var firstView = sequence.FirstOrDefault(x => x is SetCameraSequenceCommand) as SetCameraSequenceCommand;
-            Map.MapboxMap.mapInformation.SetInformation(firstView.center, firstView.zoom, firstView.pitch, firstView.bearing, firstView.scale);
+            Map.MapboxMap.MapInformation.SetInformation(firstView.center, firstView.zoom, firstView.pitch, firstView.bearing, firstView.scale);
             Map.MapboxMap.LoadMapView(() =>
             {
                 Debug.Log("file loaded");

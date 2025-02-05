@@ -12,7 +12,7 @@ namespace Mapbox.BaseModule.Map
     [Serializable]
     public sealed class MapboxMap
     {
-        [NonSerialized] public IMapInformation mapInformation;
+        [NonSerialized] public IMapInformation MapInformation;
         [NonSerialized] public UnityContext UnityContext;
         [NonSerialized] public IMapVisualizer MapVisualizer;
         [NonSerialized] public TileCover TileCover;
@@ -22,7 +22,7 @@ namespace Mapbox.BaseModule.Map
         
         public MapboxMap(IMapInformation information, UnityContext unityContext, MapService mapService)
         {
-            mapInformation = information;
+            MapInformation = information;
             UnityContext = unityContext;
             TileCover = new TileCover();
             _mapService = mapService;
@@ -42,7 +42,7 @@ namespace Mapbox.BaseModule.Map
 
         public void MapUpdated()
         {
-            _mapService.TileCover(mapInformation, TileCover);
+            _mapService.TileCover(MapInformation, TileCover);
             MapVisualizer.Load(TileCover);
         }
 
@@ -54,7 +54,7 @@ namespace Mapbox.BaseModule.Map
         public IEnumerator LoadMapViewCoroutine(Action callback)
         {
             var tileCover = new TileCover();
-            _mapService.TileCover(mapInformation, tileCover);
+            _mapService.TileCover(MapInformation, tileCover);
             yield return MapVisualizer.LoadTileCoverToMemory(tileCover);
             if (Status == InitializationStatus.Initialized)
             {
@@ -68,7 +68,7 @@ namespace Mapbox.BaseModule.Map
 
         public void ChangeView(LatitudeLongitude? latlng = null, float? zoom = null, float? pitch = null, float? bearing = null)
         {
-            mapInformation.SetInformation(latlng, zoom, pitch, bearing);
+            MapInformation.SetInformation(latlng, zoom, pitch, bearing);
         }
         
         public Action Initialized = () => {};
@@ -80,7 +80,7 @@ namespace Mapbox.BaseModule.Map
             _mapService.OnDestroy();
         }
 
-        public void UpdateTileCover() => _mapService.TileCover(mapInformation, TileCover);
+        public void UpdateTileCover() => _mapService.TileCover(MapInformation, TileCover);
         public MapService GetMapService() => _mapService;
     }
 }
