@@ -10,7 +10,13 @@ namespace Mapbox.VectorModule.MeshGeneration.GameObjectModifiers
 	{
 		public override void Run(VectorEntity ve, IMapInformation mapInformation)
 		{
-			ve.GameObject.AddComponent<MeshCollider>().sharedMesh = ve.Mesh;
+			if (ve.Mesh.vertexCount > 0)
+			{
+				var meshCollider = ve.GameObject.GetComponent<MeshCollider>();
+				if (meshCollider == null)
+					meshCollider = ve.GameObject.AddComponent<MeshCollider>();
+				meshCollider.sharedMesh = ve.Mesh;
+			}
 		}
 	}
 }
