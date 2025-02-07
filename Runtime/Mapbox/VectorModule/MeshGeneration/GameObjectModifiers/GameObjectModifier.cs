@@ -13,6 +13,7 @@ namespace Mapbox.VectorModule.MeshGeneration.GameObjectModifiers
         void Clear();
         void ClearCaches();
         void Unregister(CanonicalTileId tileId);
+        void Finalize(VectorEntity entity);
     }
 
     [Serializable]
@@ -41,6 +42,11 @@ namespace Mapbox.VectorModule.MeshGeneration.GameObjectModifiers
         public virtual void Unregister(CanonicalTileId tileId)
         {
 			
+        }
+
+        public virtual void Finalize(VectorEntity entity)
+        {
+            
         }
     }
 }

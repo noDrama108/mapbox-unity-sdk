@@ -10,5 +10,6 @@ namespace Mapbox.BaseModule.Utilities
 		public MeshRenderer MeshRenderer;
 		public VectorFeatureUnity Feature;
 		public Transform Transform;
+		public int StackId;
 	}
 }

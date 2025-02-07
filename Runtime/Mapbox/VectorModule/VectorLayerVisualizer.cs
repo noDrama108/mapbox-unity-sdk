@@ -43,10 +43,9 @@ namespace Mapbox.VectorModule
         private string _vectorLayerName;
         private UnityContext _unityContext;
         private Dictionary<int, ModifierStack> _stackList;
-        private ObjectPool<VectorEntity> _pool;
         private Dictionary<CanonicalTileId, List<VectorEntity>> _results;
         private IMapInformation _mapInformation;
-        private int _defaultPoolSize = 20;
+        
         private Transform _layerRootObject;
         
         public VectorLayerVisualizer(string name, IMapInformation mapInformation, UnityContext unityContext, VectorLayerVisualizerSettings settings)
@@ -56,7 +55,6 @@ namespace Mapbox.VectorModule
             _unityContext = unityContext;
             _settings = settings;
             _stackList = new Dictionary<int, ModifierStack>();
-            _pool = new ObjectPool<VectorEntity>(VectorEntityGenerator);
             _results = new Dictionary<CanonicalTileId, List<VectorEntity>>();
             _layerRootObject = new GameObject(_vectorLayerName + " layer objects").transform;
             _layerRootObject.transform.position += _settings.Offset;
@@ -86,7 +84,6 @@ namespace Mapbox.VectorModule
                 foreach (var entity in visuals)
                 {
                     entity.GameObject.SetActive(isActive);
-                    //_mapInformation.PositionObjectFor(entity.GameObject, canonicalTileId);
                 }
             }
         }
@@ -98,11 +95,12 @@ namespace Mapbox.VectorModule
 
         public IEnumerator Initialize()
         {
-            yield return _pool.InitializeItems(_defaultPoolSize);
             foreach (var stack in _stackList)
             {
                 stack.Value.Initialize();
             }
+
+            yield return null;
         }
 
         public void AddModifierStack(List<ModifierStack> stack)
@@ -133,7 +131,15 @@ namespace Mapbox.VectorModule
                 foreach (var entity in _results[tileId])
                 {
                     entity.GameObject.SetActive(false);
-                    _pool.Put(entity);
+                    if (_stackList.TryGetValue(entity.StackId, out var stack))
+                    {
+                        stack.Finalize(entity);
+                    }
+                    else
+                    {
+                        Debug.Log("shouldn't happen");
+                    }
+                    
                     OnVectorMeshDestroyed(entity.GameObject);
                 }
 
@@ -157,8 +163,12 @@ namespace Mapbox.VectorModule
                 }
             }
 
+            foreach (var stack in _stackList)
+            {
+                stack.Value.OnDestroy();
+            }
+
             _results.Clear();
-            _pool.Clear();
         }
 
         protected void MeshModifications(CanonicalTileId canonicalTileId, VectorTileLayer layer, Dictionary<int, HashSet<MeshData>> meshDataList)
@@ -208,7 +218,9 @@ namespace Mapbox.VectorModule
             {
                 foreach (var meshData in pair.Value)
                 {
-                    var entity = CreateObject(meshData, " go");
+                    var entity = _stackList[pair.Key].CreateEntity(meshData);
+                    entity.GameObject.transform.SetParent(_layerRootObject);
+                    entity.StackId = pair.Key;
                     entity.Feature = meshData.Feature;
                     entity.GameObject.name = VectorLayerName + " " + canonicalTileId.ToString();
                     _mapInformation.PositionObjectFor(entity.GameObject, canonicalTileId);
@@ -257,28 +269,6 @@ namespace Mapbox.VectorModule
             }
             featureResult.Data = feature;
             return featureResult;
-        }
-
-        protected VectorEntity CreateObject(MeshData meshData, string name)
-        {
-            var tempVectorEntity = _pool.GetObject();
-
-            // It is possible that we changed scenes in the middle of map generation.
-            // This object can be null as a result of Unity cleaning up game objects in the scene.
-            // Let's bail if we don't have our object.
-            if (tempVectorEntity.GameObject == null)
-            {
-                return null;
-            }
-
-            tempVectorEntity.GameObject.name = name;
-            tempVectorEntity.GameObject.SetActive(false);
-            tempVectorEntity.Mesh.Clear();
-            tempVectorEntity.Mesh.SetMeshValues(meshData);
-
-            tempVectorEntity.Transform.localPosition = meshData.PositionInTile;
-
-            return tempVectorEntity;
         }
 
         protected MeshData CombineMeshData(HashSet<MeshData> meshDataList)
@@ -331,24 +321,7 @@ namespace Mapbox.VectorModule
             return mergedData;
         }
         
-        private VectorEntity VectorEntityGenerator()
-        {
-            var go = new GameObject(VectorLayerName + " pool item");
-            go.transform.SetParent(_layerRootObject, false);
-            var mf = go.AddComponent<MeshFilter>();
-            mf.sharedMesh = new Mesh();
-            mf.sharedMesh.name = "feature";
-            var mr = go.AddComponent<MeshRenderer>();
-            var tempVectorEntity = new VectorEntity()
-            {
-                GameObject = go,
-                Transform = go.transform,
-                MeshFilter = mf,
-                MeshRenderer = mr,
-                Mesh = mf.sharedMesh
-            };
-            return tempVectorEntity;
-        }
+        
         
         public Action<GameObject> OnVectorMeshCreated = list => { };
         public Action<GameObject> OnVectorMeshDestroyed = go => { };

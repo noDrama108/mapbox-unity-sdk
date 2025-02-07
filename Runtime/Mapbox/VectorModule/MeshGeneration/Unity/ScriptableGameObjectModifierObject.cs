@@ -37,5 +37,10 @@ namespace Mapbox.VectorModule.MeshGeneration.Unity
         {
             _gameObjectModifierImplementation.Unregister(tileId);
         }
+
+        public void Finalize(VectorEntity entity)
+        {
+            _gameObjectModifierImplementation.Finalize(entity);
+        }
     }
 }
