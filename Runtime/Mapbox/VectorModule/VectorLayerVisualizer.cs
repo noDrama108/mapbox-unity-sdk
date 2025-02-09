@@ -32,6 +32,12 @@ namespace Mapbox.VectorModule
         bool ContainsVisualFor(CanonicalTileId dataTileId);
     }
 
+    public enum ModifierStackExecutionMode
+    {
+        All,
+        FirstHit
+    }
+
     [Serializable]
     public class VectorLayerVisualizer : IVectorLayerVisualizer
     {
@@ -191,6 +197,8 @@ namespace Mapbox.VectorModule
                     
                     if (!meshDataList.ContainsKey(stack.Key)) meshDataList.Add(stack.Key, new HashSet<MeshData>());
                     meshDataList[stack.Key].Add(meshData);
+                    if (_settings.StackExecutionMode == ModifierStackExecutionMode.FirstHit)
+                        break;
                 }
             }
 
@@ -361,5 +369,6 @@ namespace Mapbox.VectorModule
     {
         public bool MergeMeshes = true;
         public Vector3 Offset = Vector3.zero;
+        public ModifierStackExecutionMode StackExecutionMode;
     }
 }

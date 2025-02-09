@@ -7,18 +7,18 @@ using UnityEngine;
 
 namespace Mapbox.VectorModule.MeshGeneration.Unity
 {
-    [CreateAssetMenu(menuName = "Mapbox/Modifiers/Vector Filter Stack")]
+    [CreateAssetMenu(menuName = "Mapbox/Filters/Vector Filter Stack")]
     public class VectorFilterStackObject : ScriptableObject
     {
-        [Expandable]
-        public List<FilterBaseObject> Filters;
+        public List<FilterBaseObject> Filters = new List<FilterBaseObject>(10);
+        
         public LayerFilterCombinerOperationType Type;
 
         public VectorFilterStack GetCombiner()
         {
             return new VectorFilterStack()
             {
-                Filters = Filters.Select(x => x.Filter).ToList(),
+                Filters = Filters.Where(x => x != null).Select(x => x?.Filter).ToList(),
                 Type = this.Type
             };
         }

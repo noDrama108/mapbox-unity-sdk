@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using Mapbox.BaseModule.Data.Tiles;
 using Mapbox.BaseModule.Map;
 using Mapbox.BaseModule.Utilities;
@@ -7,7 +8,9 @@ using UnityEngine;
 
 namespace Mapbox.VectorModule.Filters
 {
-    [CreateAssetMenu(menuName = "Mapbox/Modifiers/Mesh Collider Filter")]
+    [CreateAssetMenu(menuName = "Mapbox/Filters/Mesh Collider Filter")]
+    [DisplayName("Polygon Collision Filter")]
+
     public class PolygonCollisionFilterObject : FilterBaseObject
     {
         private PolygonCollisionFilter _filter;
