@@ -17,6 +17,7 @@ public class ModifierStackEditor : Editor
     private SerializedProperty m_MeshModifiers;
     private SerializedProperty m_GoModifiers;
     private SerializedProperty m_FilterStack;
+    private SerializedProperty m_MergeObjects;
     [SerializeField] private bool falseBool = false;
     private SerializedProperty m_FalseBool;
     private Texture2D _magnifier;
@@ -28,6 +29,7 @@ public class ModifierStackEditor : Editor
         m_Editors.Add(m_MeshModifiers, new List<Editor>());
         m_GoModifiers = serializedObject.FindProperty(nameof(ModifierStackObject.GoModifiers));
         m_Editors.Add(m_GoModifiers, new List<Editor>());
+        m_MergeObjects = serializedObject.FindProperty(nameof(ModifierStackObject.Settings));
         _magnifier = EditorGUIUtility.FindTexture("d_ViewToolZoom");
         
         var editorObj = new SerializedObject(this);
@@ -84,7 +86,14 @@ public class ModifierStackEditor : Editor
             EditorGUILayout.Space();
             CoreEditorUtils.DrawSplitter();
             EditorGUILayout.Space();
-           
+
+            EditorGUI.BeginChangeCheck();
+            EditorGUILayout.PropertyField(m_MergeObjects);
+            if (EditorGUI.EndChangeCheck())
+            {
+                serializedObject.ApplyModifiedProperties();
+            }
+            
             EditorGUILayout.LabelField("Filters");
             {
                 CoreEditorUtils.DrawSplitter();

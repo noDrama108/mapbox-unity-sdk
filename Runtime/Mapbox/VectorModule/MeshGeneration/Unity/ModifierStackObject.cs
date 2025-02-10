@@ -16,6 +16,7 @@ namespace Mapbox.VectorModule.MeshGeneration.Unity
 		private ModifierStack _modifierStack;
 		public ModifierStack GetModifierStack => _modifierStack;
 
+		public ModifierStackSettings Settings;
 		public VectorFilterStackObject Filters;
 		public List<ScriptableMeshModifierObject> MeshModifiers = new List<ScriptableMeshModifierObject>();
 		public List<ScriptableGameObjectModifierObject> GoModifiers = new List<ScriptableGameObjectModifierObject>();
@@ -23,7 +24,7 @@ namespace Mapbox.VectorModule.MeshGeneration.Unity
 		public void Initialize(UnityContext unityContext = null)
 		{
 			var filterCombiner = Filters == null ? null : Filters.GetCombiner();
-			_modifierStack = new ModifierStack(filterCombiner)
+			_modifierStack = new ModifierStack(Settings, filterCombiner)
 			{
 				MeshModifiers = MeshModifiers.Select(x => x as IMeshModifier).ToList(), 
 				GoModifiers = GoModifiers.Select(x => x as IGameObjectModifier).ToList()

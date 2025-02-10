@@ -20,23 +20,32 @@ namespace Mapbox.VectorModule.MeshGeneration
     }
 
     [Serializable]
+    public class ModifierStackSettings
+    {
+        [Tooltip("Tiles will load and visuals will be visible if and only if current map is in this zoom range.")]
+        public Vector2 VisibilityZoomRange = new Vector2(1, 20);
+        public bool MergeObjects = false;
+    }
+
+    [Serializable]
     public class ModifierStack : IModifierStack
     {
         public VectorFilterStack Filters { get; private set; }
         public List<IMeshModifier> MeshModifiers;
         public List<IGameObjectModifier> GoModifiers;
         private ObjectPool<VectorEntity> _objectPool;
+        public ModifierStackSettings Settings;
         private int _defaultPoolSize = 20;
         
-        public ModifierStack(VectorFilterStack filters = null)
+        public ModifierStack(ModifierStackSettings settings, VectorFilterStack filters = null)
         {
             Filters = filters;
+            Settings = settings;
             MeshModifiers = new List<IMeshModifier>();
             GoModifiers = new List<IGameObjectModifier>();
-            _objectPool = new ObjectPool<VectorEntity>(VectorEntityGenerator);
         }
         
-        public void Initialize()
+        public void Initialize(Transform layerRootObject = null)
         {
             if (Filters != null && Filters.Filters != null)
             {
@@ -46,6 +55,7 @@ namespace Mapbox.VectorModule.MeshGeneration
                 }
             }
 
+            _objectPool = new ObjectPool<VectorEntity>(() => VectorEntityGenerator(layerRootObject));
             _objectPool.InitializeItems(_defaultPoolSize);
         }
 
@@ -93,10 +103,11 @@ namespace Mapbox.VectorModule.MeshGeneration
             _objectPool.Clear();
         }
         
-        private VectorEntity VectorEntityGenerator()
+        private VectorEntity VectorEntityGenerator(Transform layerRootObject)
         {
             var go = new GameObject("pool item");
-            //go.transform.SetParent(_layerRootObject, false);
+            if(layerRootObject != null) 
+                go.transform.SetParent(layerRootObject, false);
             var mf = go.AddComponent<MeshFilter>();
             mf.sharedMesh = new Mesh();
             mf.sharedMesh.name = "feature";
@@ -132,6 +143,11 @@ namespace Mapbox.VectorModule.MeshGeneration
             tempVectorEntity.Transform.localPosition = meshData.PositionInTile;
 
             return tempVectorEntity;
+        }
+        
+        public bool IsZinSupportedRange(int targetZ)
+        {
+            return Settings.VisibilityZoomRange.x <= targetZ && Settings.VisibilityZoomRange.y >= targetZ;
         }
     }
 }

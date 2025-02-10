@@ -89,7 +89,10 @@ namespace Mapbox.VectorModule
             {
                 foreach (var entity in visuals)
                 {
-                    entity.GameObject.SetActive(isActive);
+                    if (_stackList.TryGetValue(entity.StackId, out var stack))
+                    {
+                        entity.GameObject.SetActive(isActive && stack.IsZinSupportedRange(_mapInformation.AbsoluteZoom));
+                    }
                 }
             }
         }
@@ -103,7 +106,7 @@ namespace Mapbox.VectorModule
         {
             foreach (var stack in _stackList)
             {
-                stack.Value.Initialize();
+                stack.Value.Initialize(_layerRootObject);
             }
 
             yield return null;
@@ -205,13 +208,14 @@ namespace Mapbox.VectorModule
             // if (!tile.IsActive)
             //     return;
 
-            if (_settings.MergeMeshes)
+            foreach (var meshResult in meshDataList)
             {
-                foreach (var pairs in meshDataList)
+                var stack = _stackList[meshResult.Key];
+                if (stack.Settings.MergeObjects)
                 {
-                    var mergedData = CombineMeshData(pairs.Value);
-                    pairs.Value.Clear();
-                    pairs.Value.Add(mergedData);
+                    var mergedData = CombineMeshData(meshResult.Value);
+                    meshResult.Value.Clear();
+                    meshResult.Value.Add(mergedData);
                 }
             }
         }
@@ -367,7 +371,7 @@ namespace Mapbox.VectorModule
     [Serializable]
     public class VectorLayerVisualizerSettings
     {
-        public bool MergeMeshes = true;
+        [Tooltip("Visuals will be offset by this value (in example, push things above ground level).")]
         public Vector3 Offset = Vector3.zero;
         public ModifierStackExecutionMode StackExecutionMode;
     }
