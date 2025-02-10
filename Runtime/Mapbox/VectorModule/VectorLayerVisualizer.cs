@@ -17,22 +17,6 @@ using Mapbox.VectorTile;
 
 namespace Mapbox.VectorModule
 {
-    public interface IVectorLayerVisualizer
-    {
-        string VectorLayerName { get; }
-        void AddModifierStack(List<ModifierStack> stack);
-        Dictionary<int, HashSet<MeshData>> CreateMesh(CanonicalTileId tileId, VectorTileLayer layer);
-        List<GameObject> CreateGo(CanonicalTileId tileId, Dictionary<int, HashSet<MeshData>> meshData);
-        void UnregisterTile(CanonicalTileId tileId);
-        bool Active { get; set; }
-        IEnumerator Initialize();
-        Dictionary<int, ModifierStack> GetModStacks { get; }
-        void OnDestroy();
-        void UpdateForView(CanonicalTileId canonicalTileId, IMapInformation information);
-        void SetActive(CanonicalTileId tileId, bool isActive, IMapInformation mapInformation);
-        bool ContainsVisualFor(CanonicalTileId dataTileId);
-    }
-
     public enum ModifierStackExecutionMode
     {
         All,
@@ -283,7 +267,6 @@ namespace Mapbox.VectorModule
         protected MeshData CombineMeshData(HashSet<MeshData> meshDataList)
         {
             var mergedData = new MeshData();
-            var _counter = meshDataList.Count;
             foreach (var currentData in meshDataList)
             {
                 if (currentData.Vertices.Count <= 3)
@@ -330,46 +313,7 @@ namespace Mapbox.VectorModule
             return mergedData;
         }
         
-        
-        
         public Action<GameObject> OnVectorMeshCreated = list => { };
         public Action<GameObject> OnVectorMeshDestroyed = go => { };
-        
-
-        // private void ClearObjectOnUnregister(UnityMapTile tile)
-        // {
-        // 	if (_activeObjects.ContainsKey(tile))
-        // 	{
-        // 		var counter = _activeObjects[tile].Count;
-        // 		for (int i = 0; i < counter; i++)
-        // 		{
-        // 			// foreach (var item in GoModifiers)
-        // 			// {
-        // 			// 	item.OnPoolItem(_activeObjects[tile][i]);
-        // 			// }
-        // 			if (null != _activeObjects[tile][i].GameObject)
-        // 			{
-        // 				_activeObjects[tile][i].GameObject.SetActive(false);
-        //             }
-        //
-        // 			_pool.Put(_activeObjects[tile][i]);
-        // 		}
-        //
-        // 		_activeObjects[tile].Clear();
-        //
-        // 		//pooling these lists as they'll reused anyway, saving hundreds of list instantiations
-        // 		_listPool.Put(_activeObjects[tile]);
-        // 		_activeObjects.Remove(tile);
-        // 	}
-        // }
-        
-    }
-
-    [Serializable]
-    public class VectorLayerVisualizerSettings
-    {
-        [Tooltip("Visuals will be offset by this value (in example, push things above ground level).")]
-        public Vector3 Offset = Vector3.zero;
-        public ModifierStackExecutionMode StackExecutionMode;
     }
 }
