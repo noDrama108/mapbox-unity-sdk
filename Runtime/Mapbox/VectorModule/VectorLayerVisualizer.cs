@@ -8,6 +8,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using System.Collections;
 using System.Linq;
+using CodiceApp;
 using Mapbox.BaseModule.Data;
 using Mapbox.BaseModule.Data.Tiles;
 using Mapbox.BaseModule.Unity;
@@ -76,8 +77,8 @@ namespace Mapbox.VectorModule
                     _mapInformation.PositionObjectFor(canonicalTileId, out var position, out var scale);
                     entity.GameObject.transform.localPosition = new Vector3(
                         position.x - _layerRootObject.transform.position.x, 
-                        0, 
-                        position.z - _layerRootObject.transform.position.z); //position - _layerRootObject.transform.position;
+                        entity.GameObject.transform.localPosition.y, 
+                        position.z - _layerRootObject.transform.position.z);
                     entity.GameObject.transform.localScale = scale;
                 }
             }
@@ -222,9 +223,6 @@ namespace Mapbox.VectorModule
 
         protected List<GameObject> GameObjectModifications(CanonicalTileId canonicalTileId, Dictionary<int, HashSet<MeshData>> meshDataList)
         {
-            // if (!tile.IsActive)
-            //     return null;
-
             var objectList = new List<GameObject>();
             foreach (var pair in meshDataList)
             {
@@ -234,8 +232,7 @@ namespace Mapbox.VectorModule
                     entity.GameObject.transform.SetParent(_layerRootObject);
                     entity.StackId = pair.Key;
                     entity.Feature = meshData.Feature;
-                    entity.GameObject.name = VectorLayerName + " " + canonicalTileId.ToString();
-                    _mapInformation.PositionObjectFor(entity.GameObject, canonicalTileId);
+                    if(Application.isEditor) entity.GameObject.name = VectorLayerName + " " + canonicalTileId.ToString();
                     _stackList[pair.Key].RunGoModifiers(entity, _mapInformation);
                     objectList.Add(entity.GameObject);
                     
