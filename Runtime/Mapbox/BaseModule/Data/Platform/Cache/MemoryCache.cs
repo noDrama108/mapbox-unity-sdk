@@ -7,29 +7,30 @@ namespace Mapbox.BaseModule.Data.Platform.Cache
 	public interface IMemoryCache
 	{
 		void OnDestroy();
-		TypeMemoryCache<T> RegisterType<T>(int cacheSize = 100) where T : MapboxTileData;
+		TypeMemoryCache<T> RegisterType<T>(int owner, int cacheSize = 100) where T : MapboxTileData;
 	}
 
 	public class MemoryCache : IMemoryCache
 	{
-		private Dictionary<Type, ITypeCache> _subCaches;
+		//private Dictionary<Type, ITypeCache> _subCaches;
+		private Dictionary<int, ITypeCache> _subCaches;
 
 		public MemoryCache()
 		{
-			_subCaches = new Dictionary<Type, ITypeCache>();
+			_subCaches = new Dictionary<int, ITypeCache>();
 		}
 
-		public TypeMemoryCache<T> RegisterType<T>(int cacheSize = 100) where T : MapboxTileData
+		public TypeMemoryCache<T> RegisterType<T>(int owner, int cacheSize = 100) where T : MapboxTileData
 		{
 			var dataType = typeof(T);
-			if (_subCaches.ContainsKey(dataType))
+			if (_subCaches.ContainsKey(owner))
 			{
-				return (TypeMemoryCache<T>) _subCaches[dataType];
+				return (TypeMemoryCache<T>) _subCaches[owner];
 			}
 			else
 			{
 				var subcache = new TypeMemoryCache<T>(cacheSize);
-				_subCaches.Add(typeof(T), subcache);
+				_subCaches.Add(owner, subcache);
 				return subcache;
 			}
 		}

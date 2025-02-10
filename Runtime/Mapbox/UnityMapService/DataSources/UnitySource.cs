@@ -105,9 +105,9 @@ namespace Mapbox.UnityMapService.DataSources
             _cacheManager.UpdateExpiration(tileId, tilesetId, date);
         }
 
-        protected TypeMemoryCache<T1> RegisterTypeToMemoryCache<T1>(int cacheSize = 100) where T1 : MapboxTileData
+        protected TypeMemoryCache<T1> RegisterTypeToMemoryCache<T1>(int owner, int cacheSize = 100) where T1 : MapboxTileData
         {
-            return _cacheManager.RegisterMemoryCache<T1>(cacheSize);
+            return _cacheManager.RegisterMemoryCache<T1>(owner, cacheSize);
         }
 
         public override bool IsZinSupportedRange(int z)
