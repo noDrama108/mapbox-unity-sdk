@@ -57,6 +57,12 @@ namespace Mapbox.BaseModule.Telemetry
 		//Mapbox Options
 		private string _mapboxOptionsSetAccessTokenMethodName = "setAccessToken";
 		private string _couldNotGetMapboxOptionsMessage = "Couldn't get Mapbox Options";
+
+		private string _sdkInfoRegistryFactoryClassName = "com.mapbox.common.SdkInfoRegistryFactory";
+		private string _sdkInfoRegistryFactoryGetMethodName = "getInstance"; 
+		private string _sdkInfoRegistryRegisterMethodName = "registerSdkInformation";
+
+		private AndroidJavaObject _sdkInformation;
 		
 		public void Initialize(string accessToken)
 		{
@@ -78,7 +84,21 @@ namespace Mapbox.BaseModule.Telemetry
 				Debug.LogError(_couldNotGETCurrentActivityMessage);
 				return;
 			}
+			
+			// SdkInformation testInformation = new SdkInformation(applicationName, packageVersion, packageName);
+			// SdkInfoRegistry registry = SdkInfoRegistryFactory.getInstance();
+			// registry.registerSdkInformation(testInformation);
 
+			_sdkInformation = new AndroidJavaObject(
+				_mapboxSdkInformationClassName,
+				Constants.SDK_IDENTIFIER,
+				Constants.SDK_VERSION,
+				_mapboxSdkInformationPackageName);
+			
+			var sdkInfoRegistryFactory = new AndroidJavaClass(_sdkInfoRegistryFactoryClassName);
+			var sdkInfoRegistry = sdkInfoRegistryFactory.CallStatic<AndroidJavaObject>(_sdkInfoRegistryFactoryGetMethodName);
+			sdkInfoRegistry.Call(_sdkInfoRegistryRegisterMethodName, _sdkInformation);
+			
 			//if (SetAccessToken(accessToken)) return;
 
 			InitializeTelemetryService();
@@ -86,29 +106,21 @@ namespace Mapbox.BaseModule.Telemetry
 		
 		public void SendTurnstile()
 		{
-
-			using (AndroidJavaObject sdkInformation = new AndroidJavaObject(
-				_mapboxSdkInformationClassName,
-				_mapboxSdkInformationName,
-				_mapboxSdkInformationVersion,
-				_mapboxSdkInformationPackageName))
+			using (AndroidJavaObject eventsServerOptions = new AndroidJavaObject(_mapboxEventsServerOptionsClassName, _sdkInformation, null))
 			{
-				using (AndroidJavaObject eventsServerOptions = new AndroidJavaObject(_mapboxEventsServerOptionsClassName, sdkInformation, null))
+				var eventServiceFactory = new AndroidJavaClass(_mapboxEventsServiceClassName);
+				_mapboxEventService = eventServiceFactory.CallStatic<AndroidJavaObject>(_mapboxEventServiceGetMethodName, eventsServerOptions);
+
+				if (_mapboxEventService == null)
 				{
-					var eventServiceFactory = new AndroidJavaClass(_mapboxEventsServiceClassName);
-					_mapboxEventService = eventServiceFactory.CallStatic<AndroidJavaObject>(_mapboxEventServiceGetMethodName, eventsServerOptions);
+					Debug.Log(_eventsServiceNullMessage);
+					return;
+				}
 
-					if (_mapboxEventService == null)
-					{
-						Debug.Log(_eventsServiceNullMessage);
-						return;
-					}
-
-					var skuid = new AndroidJavaObject(_mapboxUserSkuIdentifierClassName);
-					using (AndroidJavaObject turnstileEvent = new AndroidJavaObject(_mapboxTurnstileEventClassName, skuid.GetStatic<AndroidJavaObject>(_unityMausEnumName)))
-					{
-						_mapboxEventService.Call(_sendTurnstileEventMethodName, turnstileEvent, null);
-					}
+				var skuid = new AndroidJavaObject(_mapboxUserSkuIdentifierClassName);
+				using (AndroidJavaObject turnstileEvent = new AndroidJavaObject(_mapboxTurnstileEventClassName, skuid.GetStatic<AndroidJavaObject>(_unityMausEnumName)))
+				{
+					_mapboxEventService.Call(_sendTurnstileEventMethodName, turnstileEvent, null);
 				}
 			}
 		}
@@ -118,15 +130,8 @@ namespace Mapbox.BaseModule.Telemetry
 			var billingServiceFactory = new AndroidJavaClass(_mapboxBillingServiceFactoryClassName);
 			var billingService = billingServiceFactory.CallStatic<AndroidJavaObject>(_mapboxBillingFactoryGetMethodName);
 			
-			using (AndroidJavaObject sdkInformation = new AndroidJavaObject(
-				       _mapboxSdkInformationClassName,
-				       _mapboxSdkInformationName,
-				       _mapboxSdkInformationVersion,
-				       _mapboxSdkInformationPackageName))
-			{
-				var skuid = new AndroidJavaObject(_mapboxUserSkuIdentifierClassName);
-				billingService.Call(_mapboxSdkEventMethodName, sdkInformation, skuid.GetStatic<AndroidJavaObject>(_unityMausEnumName), null);
-			}
+			var skuid = new AndroidJavaObject(_mapboxUserSkuIdentifierClassName);
+			billingService.Call(_mapboxSdkEventMethodName, _sdkInformation, skuid.GetStatic<AndroidJavaObject>(_unityMausEnumName), null);
 		}
 
 		public void SetLocationCollectionState(bool enable)
