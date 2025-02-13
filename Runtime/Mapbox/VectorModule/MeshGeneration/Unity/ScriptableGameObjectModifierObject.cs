@@ -1,3 +1,4 @@
+using Mapbox.BaseModule.Data.Tiles;
 using Mapbox.BaseModule.Map;
 using Mapbox.BaseModule.Unity;
 using Mapbox.BaseModule.Utilities;
@@ -8,6 +9,8 @@ namespace Mapbox.VectorModule.MeshGeneration.Unity
 {
     public abstract class ScriptableGameObjectModifierObject : ScriptableObject, IGameObjectModifier
     {
+        [SerializeField, HideInInspector] private bool m_Active = true;
+        
         protected abstract GameObjectModifier _gameObjectModifierImplementation { get; }
 
         public abstract void ConstructModifier(UnityContext unityContext);
@@ -32,9 +35,14 @@ namespace Mapbox.VectorModule.MeshGeneration.Unity
             _gameObjectModifierImplementation.ClearCaches();
         }
 
-        public void Unregister(UnityMapTile tile)
+        public void Unregister(CanonicalTileId tileId)
         {
-            _gameObjectModifierImplementation.Unregister(tile);
+            _gameObjectModifierImplementation.Unregister(tileId);
+        }
+
+        public void Finalize(VectorEntity entity)
+        {
+            _gameObjectModifierImplementation.Finalize(entity);
         }
     }
 }

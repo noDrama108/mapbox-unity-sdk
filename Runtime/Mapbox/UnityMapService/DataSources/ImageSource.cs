@@ -24,7 +24,7 @@ namespace Mapbox.UnityMapService.DataSources
             _waitingList = new Dictionary<CanonicalTileId, RasterTile>();
             _activeRequestsToCancel = new HashSet<CanonicalTileId>();
 
-            _memoryCache = RegisterTypeToMemoryCache<T>(_settings.CacheSize);
+            _memoryCache = RegisterTypeToMemoryCache<T>(this.GetHashCode(), _settings.CacheSize);
             _memoryCache.CacheItemDisposed += (t) =>
             {
                 CacheItemDisposed(t);

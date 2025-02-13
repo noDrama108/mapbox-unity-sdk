@@ -20,16 +20,16 @@ namespace Mapbox.Example.Scripts.MapInput
 			{
 				_map = map;
 				_isInitialized = true;
-				Core.Initialize(Camera, _map.mapInformation, new Plane(MapBehaviour.transform.up, MapBehaviour.transform.position));
+				Core.Initialize(Camera, _map.MapInformation, new Plane(MapBehaviour.transform.up, MapBehaviour.transform.position));
 			};
 		}
 
 		public void Update()
 		{
-			if (_isInitialized && _map.mapInformation != null && Core.UpdateCamera(_map.mapInformation))
+			if (_isInitialized && _map.MapInformation != null && Core.UpdateCamera(_map.MapInformation))
 			{
 				var eulerAngles = Camera.transform.eulerAngles;
-				_map.mapInformation.SetInformation(null, Core.ZoomValue, eulerAngles.x, eulerAngles.y, Core.ScaleValue);
+				_map.MapInformation.SetInformation(null, Core.ZoomValue, eulerAngles.x, eulerAngles.y, Core.ScaleValue);
 			}
 		}
 	}

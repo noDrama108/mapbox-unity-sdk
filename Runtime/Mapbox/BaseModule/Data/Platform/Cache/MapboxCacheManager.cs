@@ -173,9 +173,9 @@ namespace Mapbox.BaseModule.Data.Platform.Cache
             _sqLiteCache.RemoveData(tilesetId, zoom, x, y);
         }
 
-        public TypeMemoryCache<T> RegisterMemoryCache<T>(int cacheSize = 100) where T : MapboxTileData
+        public TypeMemoryCache<T> RegisterMemoryCache<T>(int owner, int cacheSize = 100) where T : MapboxTileData
         {
-            return _memoryCache.RegisterType<T>(cacheSize);
+            return _memoryCache.RegisterType<T>(owner, cacheSize);
         }
         
         /// <summary>

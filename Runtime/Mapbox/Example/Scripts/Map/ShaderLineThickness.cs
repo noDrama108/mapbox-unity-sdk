@@ -17,7 +17,7 @@ namespace Mapbox.Example.Scripts.Map
         {
             MapBehaviour.Initialized += (map) =>
             {
-                _mapInfo = map.mapInformation;
+                _mapInfo = map.MapInformation;
             };
         }
 

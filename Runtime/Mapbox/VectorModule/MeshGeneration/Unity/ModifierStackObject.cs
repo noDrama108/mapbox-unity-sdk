@@ -16,17 +16,15 @@ namespace Mapbox.VectorModule.MeshGeneration.Unity
 		private ModifierStack _modifierStack;
 		public ModifierStack GetModifierStack => _modifierStack;
 
-		[Expandable]
+		public ModifierStackSettings Settings;
 		public VectorFilterStackObject Filters;
-		[Expandable]
-		public List<ScriptableMeshModifierObject> MeshModifiers;
-		[Expandable]
-		public List<ScriptableGameObjectModifierObject> GoModifiers;
+		public List<ScriptableMeshModifierObject> MeshModifiers = new List<ScriptableMeshModifierObject>();
+		public List<ScriptableGameObjectModifierObject> GoModifiers = new List<ScriptableGameObjectModifierObject>();
 
 		public void Initialize(UnityContext unityContext = null)
 		{
 			var filterCombiner = Filters == null ? null : Filters.GetCombiner();
-			_modifierStack = new ModifierStack(filterCombiner)
+			_modifierStack = new ModifierStack(Settings, filterCombiner)
 			{
 				MeshModifiers = MeshModifiers.Select(x => x as IMeshModifier).ToList(), 
 				GoModifiers = GoModifiers.Select(x => x as IGameObjectModifier).ToList()
@@ -50,6 +48,11 @@ namespace Mapbox.VectorModule.MeshGeneration.Unity
 		public void RunGoModifiers(VectorEntity entity, IMapInformation mapInformation)
 		{
 			_modifierStack.RunGoModifiers(entity, mapInformation);
+		}
+
+		public void Finalize(VectorEntity entity)
+		{
+			_modifierStack.Finalize(entity);
 		}
 	}
 }

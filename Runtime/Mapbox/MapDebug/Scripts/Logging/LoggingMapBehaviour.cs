@@ -61,7 +61,7 @@ namespace Mapbox.MapDebug.Scripts.Logging
             _mapService = GetMapService(mapboxContext, UnityContext);
             MapServiceReady(_mapService);
 
-            MapboxMap = new MapboxMap(MapInformation, _mapService);
+            MapboxMap = new MapboxMap(MapInformation, UnityContext, _mapService);
             //passing map info to visualizer for root object, default tile material/texture
             var mapVisualizer = CreateMapVisualizer(MapInformation, UnityContext);
             var comps = GetComponents<ModuleConstructorScript>();

@@ -16,19 +16,19 @@ namespace Mapbox.Example.Scripts.Test
         public void SetLatLng1()
         {
             _map = FindObjectOfType<MapboxMapBehaviour>().MapboxMap;
-            _map.mapInformation.SetInformation(Conversions.StringToLatLon(LatLng1));
+            _map.MapInformation.SetInformation(Conversions.StringToLatLon(LatLng1));
         }
     
         public void SetLatLng2()
         {
             _map = FindObjectOfType<MapboxMapBehaviour>().MapboxMap;
-            _map.mapInformation.SetInformation(Conversions.StringToLatLon(LatLng2));
+            _map.MapInformation.SetInformation(Conversions.StringToLatLon(LatLng2));
         }
 
         public void SetZoomRandom()
         {
             _map = FindObjectOfType<MapboxMapBehaviour>().MapboxMap;
-            _map.mapInformation.SetInformation(null, (Random.value * 15) + 1);
+            _map.MapInformation.SetInformation(null, (Random.value * 15) + 1);
         }
 
         private Coroutine clickToLatLngCoroutine;
@@ -53,10 +53,10 @@ namespace Mapbox.Example.Scripts.Test
                 {
                     if (UnityEngine.Input.GetMouseButtonDown(0))
                     {
-                        var latlng = _map.mapInformation.ConvertPositionToLatLng(GetPlaneIntersection(camera, UnityEngine.Input.mousePosition));
+                        var latlng = _map.MapInformation.ConvertPositionToLatLng(GetPlaneIntersection(camera, UnityEngine.Input.mousePosition));
                         var go = GameObject.CreatePrimitive(PrimitiveType.Sphere);
                         go.name = latlng.ToString();
-                        go.transform.position = _map.mapInformation.ConvertLatLngToPosition(latlng);
+                        go.transform.position = _map.MapInformation.ConvertLatLngToPosition(latlng);
                     }
 
                     yield return null;

@@ -224,10 +224,11 @@ namespace Mapbox.VectorModule
 		
 		private CanonicalTileId GetTargetTileId(CanonicalTileId tileId)
 		{
-			if (tileId.Z >= 15)
+			var maxZoom = (int)_vectorModuleSettings.DataSettings.LayerRange.y;
+			if (tileId.Z >= maxZoom)
 			{
-				return tileId.Z > 15
-					? tileId.ParentAt(15)
+				return tileId.Z > maxZoom
+					? tileId.ParentAt(maxZoom)
 					: tileId;
 			}
 			else
@@ -256,10 +257,17 @@ namespace Mapbox.VectorModule
 					else if (result.ResultType == TaskResultType.DataProcessingFailure)
 					{
 						_vectorSource.InvalidateData(vectorData.TileId);
+						Debug.Log(result.ExceptionsAsString);
 					}
 					else if (result.ResultType == TaskResultType.Cancelled)
 					{
-						
+						if (result.GeneratedObjects != null)
+						{
+							foreach (var gameObject in result.GeneratedObjects)
+							{
+								GameObject.Destroy(gameObject);
+							}
+						}
 					}
 					callback?.Invoke(result);;
 				}));

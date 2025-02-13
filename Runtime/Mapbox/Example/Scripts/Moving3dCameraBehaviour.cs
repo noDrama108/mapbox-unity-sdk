@@ -20,15 +20,15 @@ namespace Mapbox.Example.Scripts.MapInput
 			{
 				_map = map;
 				_isInitialized = true;
-				Core.Initialize(Camera, _map.mapInformation);
+				Core.Initialize(Camera, _map.MapInformation);
 			};
 		}
 
 		public void Update()
 		{
-			if (_isInitialized && _map.mapInformation != null && Core.UpdateCamera(_map.mapInformation))
+			if (_isInitialized && _map.MapInformation != null && Core.UpdateCamera(_map.MapInformation))
 			{
-				_map.mapInformation.SetInformation(null, Core.ZoomValue, Core.Pitch, Core.Bearing);
+				_map.MapInformation.SetInformation(null, Core.ZoomValue, Core.Pitch, Core.Bearing);
 			}
 		}
 

@@ -61,8 +61,8 @@ namespace Mapbox.Example.Scripts
             if (_map == null)
                 return;
         
-            var center = _map.mapInformation.CenterMercator;
-            var scale = _map.mapInformation.Scale;
+            var center = _map.MapInformation.CenterMercator;
+            var scale = _map.MapInformation.Scale;
             foreach (var tile in _map.TileCover.Tiles)
             {
                 var rectd = Conversions.TileBoundsInWebMercator(tile);
@@ -95,8 +95,8 @@ namespace Mapbox.Example.Scripts
             if (_map == null)
                 return;
         
-            var center = _map.mapInformation.CenterMercator;
-            var scale = _map.mapInformation.Scale;
+            var center = _map.MapInformation.CenterMercator;
+            var scale = _map.MapInformation.Scale;
             foreach (var tile in _map.TileCover.Tiles)
             {
                 NewMethod(tile, center, scale, Color, _style);

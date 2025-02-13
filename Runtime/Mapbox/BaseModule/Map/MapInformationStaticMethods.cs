@@ -20,6 +20,16 @@ namespace Mapbox.BaseModule.Map
             return Conversions.WebMercatorToLatLon(mercator);
         }
         
+        public static Vector3 ConvertLatLngToPositionForScale(this IMapInformation mapInfo, LatitudeLongitude latlng, float scale)
+        {
+            var mercator = Conversions.LatitudeLongitudeToWebMercator(latlng);
+            var deltaMercator = mercator - mapInfo.CenterMercator;
+            var scaledDeltaMercator = deltaMercator / scale;
+            var scaledDeltaMercatorVector3 = scaledDeltaMercator.ToVector3xz();
+            
+            return scaledDeltaMercatorVector3;
+        }
+        
         public static Vector3 ConvertLatLngToPosition(this IMapInformation mapInfo, LatitudeLongitude latlng)
         {
             var mercator = Conversions.LatitudeLongitudeToWebMercator(latlng);
@@ -36,6 +46,14 @@ namespace Mapbox.BaseModule.Map
             var tileSize = Conversions.TileSizeInUnitySpace(tileId.Z, mapInfo.Scale);
             go.transform.localPosition = topLeftValues;
             go.transform.localScale = Vector3.one * tileSize;
+        }
+        
+        public static void PositionObjectFor(this IMapInformation mapInfo, CanonicalTileId tileId, out Vector3 position, out Vector3 scale)
+        {
+            var topLeftValues = Conversions.TileTopLeftInUnitySpace(tileId, mapInfo.CenterMercator, mapInfo.Scale);
+            var tileSize = Conversions.TileSizeInUnitySpace(tileId.Z, mapInfo.Scale);
+            position = topLeftValues;
+            scale = Vector3.one * tileSize;
         }
     }
 }
