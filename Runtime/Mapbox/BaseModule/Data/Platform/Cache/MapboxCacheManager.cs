@@ -201,7 +201,6 @@ namespace Mapbox.BaseModule.Data.Platform.Cache
                 Debug.Log(string.Format("{0} files will be deleted to sync sqlite and file cache", fileList.Count));
                 foreach (var filePath in fileList)
                 {
-                    Debug.Log(filePath);
                     File.Delete(filePath);
                 }
 
