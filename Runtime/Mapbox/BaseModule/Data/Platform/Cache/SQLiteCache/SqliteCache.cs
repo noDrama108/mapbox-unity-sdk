@@ -158,7 +158,6 @@ CONSTRAINT tileAssignmentConstraint UNIQUE (tileId, mapId)
 
 		public void SyncAdd(string tilesetName, CanonicalTileId tileId, byte[] data, string path, string etag, DateTime? expirationDate, bool forceInsert)
 		{
-			Debug.Log("adding " + tileId + " to " + path);
 			try
 			{
 				// tile exists and we don't want to overwrite -> exit early
@@ -438,7 +437,6 @@ CONSTRAINT tileAssignmentConstraint UNIQUE (tileId, mapId)
 					TileId = tileId,
 					Action = () =>
 					{
-						Debug.Log(string.Format("Sqlite saving {0} - {1}", tileId, path));
 						lock (_lock)
 						{
 							SyncAdd(tilesetName, tileId, data, path, etag, expirationDate, forceInsert);
@@ -448,7 +446,6 @@ CONSTRAINT tileAssignmentConstraint UNIQUE (tileId, mapId)
 					{
 						if (t.IsCompleted && !t.IsFaulted)
 						{
-							Debug.Log(string.Format("Sqlite saved {0} - {1}", tileId, path));
 						}
 						else
 						{

@@ -112,7 +112,7 @@ namespace Mapbox.BaseModule.Data.Platform.Cache
 			}
 			else
 			{
-				Debug.LogErrorFormat("File {0} not found", info.FullName);
+				
 			}
 
 			return info.Exists;
