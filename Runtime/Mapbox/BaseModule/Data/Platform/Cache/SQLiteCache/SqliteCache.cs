@@ -202,7 +202,7 @@ CONSTRAINT tileAssignmentConstraint UNIQUE (tileId, mapId)
 							_pruneCacheCounter++;
 						}
 					}
-					Debug.Log("rows affected " + rowsAffected);
+					
 					if (rowsAffected < 1)
 					{
 						throw new Exception(string.Format("tile [{0} / {1}] was not inserted, rows affected:{2}", tilesetName, tileId, rowsAffected));
