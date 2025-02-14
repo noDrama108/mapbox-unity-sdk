@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Mapbox.BaseModule.Data.DataFetchers;
 using Mapbox.BaseModule.Data.Platform.Cache;
 using Mapbox.BaseModule.Data.Tiles;
@@ -19,6 +20,33 @@ namespace Mapbox.UnityMapService.DataSources
             _elevationDataExtractionStrategy = SystemInfo.supportsAsyncGPUReadback
                 ? (IElevationDataExtractionStrategy) new AsyncExtractElevationArray()
                 : (IElevationDataExtractionStrategy) new SyncExtractElevationArray();
+        }
+        
+        public override void DownloadAndCacheBaseTiles()
+        {
+            var backgroundTiles = new HashSet<CanonicalTileId>();
+            for (int i = 0; i < 4; i++)
+            {
+                for (int j = 0; j < 3; j++)
+                {
+                    backgroundTiles.Add(new CanonicalTileId(2, i, j));
+                }
+            }
+
+            for (int i = 0; i < 2; i++)
+            {
+                for (int j = 0; j < 2; j++)
+                {
+                    backgroundTiles.Add(new CanonicalTileId(1, i, j));
+                }
+            }
+
+            backgroundTiles.Add(new CanonicalTileId(0, 0, 0));
+
+            foreach (var tileId in backgroundTiles)
+            {
+                BackgroundLoad(tileId, _tilesetId);
+            }
         }
         
         protected override RasterTile CreateTile(CanonicalTileId tileId, string tilesetId)
@@ -81,11 +109,12 @@ namespace Mapbox.UnityMapService.DataSources
         protected override TerrainData TextureReceivedFromWeb(RasterTile tile)
         {
             var cacheItem = base.TextureReceivedFromWeb(tile);
-            
-            _elevationDataExtractionStrategy.ExtractHeightData(cacheItem.Texture, (elevationArray) =>
+
+            if (cacheItem != null)
             {
-                cacheItem.SetElevationValues(elevationArray);
-            });
+                _elevationDataExtractionStrategy.ExtractHeightData(cacheItem.Texture,
+                    (elevationArray) => { cacheItem.SetElevationValues(elevationArray); });
+            }
 
             return cacheItem;
         }

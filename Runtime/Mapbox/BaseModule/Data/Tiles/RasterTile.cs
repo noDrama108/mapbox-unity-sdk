@@ -115,6 +115,10 @@ namespace Mapbox.BaseModule.Data.Tiles
 				TileState = TileState.Errored;
 				AddLog(string.Format("{0} - {1}", Time.unscaledTime, " tile errored"));
 			}
+			else if (webRequestResponse.Result == WebResponseResult.NoData)
+			{
+				TileState = TileState.Loaded;
+			}
 			
 			AddLog(string.Format("{0} - {1}", Time.unscaledTime, " tile finished"));
 			_callback(new DataFetchingResult(webRequestResponse));

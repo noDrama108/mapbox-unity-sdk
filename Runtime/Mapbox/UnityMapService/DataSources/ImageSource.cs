@@ -259,26 +259,25 @@ namespace Mapbox.UnityMapService.DataSources
                 GameObject.Destroy(tile.Texture2D);
             }
 
-            if (tile.CurrentTileState != TileState.Loaded)
+            if (tile.CurrentTileState == TileState.Loaded && tile.Data != null)
             {
-                //aborted web requests end up here
-                return null;
+                //IMPORTANT This is where we create a Texture2D
+                tile.AddLog("extracting texture ", tile.Id);
+                tile.ExtractTextureFromRequest();
+
+                var newTextureCacheItem = CreateRasterDataWrapper(tile);
+
+                _memoryCache.Add(newTextureCacheItem);
+                SaveImage(newTextureCacheItem, true);
+
+                return newTextureCacheItem;
             }
 
-            //IMPORTANT This is where we create a Texture2D
-            tile.AddLog("extracting texture ", tile.Id);
-            tile.ExtractTextureFromRequest();
-            
-            var newTextureCacheItem = CreateRasterDataWrapper(tile);
-            
-            _memoryCache.Add(newTextureCacheItem);
-            SaveImage(newTextureCacheItem, true);
-            
-            return newTextureCacheItem;
+            return null;
         }
         
         
-        private void BackgroundLoad(CanonicalTileId tileId, string tilesetId)
+        protected void BackgroundLoad(CanonicalTileId tileId, string tilesetId)
         {
             _waitingList[tileId] = null;
 
