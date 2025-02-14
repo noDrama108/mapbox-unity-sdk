@@ -681,9 +681,9 @@ MonoBehaviour:
     LoadBackgroundData: 1
     DataSettings:
       CacheSize: 100
-      LayerRange: {x: 12, y: 16}
+      ActiveZoomLevelRange: {x: 14, y: 15}
   _layerVisualizers:
-  - {fileID: 11400000, guid: 318944c18b4004d168c704ce71ae3dde, type: 2}
+  - {fileID: 11400000, guid: 93ded54f2ef0640809b3d199fe06e961, type: 2}
 --- !u!4 &1956110474
 Transform:
   m_ObjectHideFlags: 0
