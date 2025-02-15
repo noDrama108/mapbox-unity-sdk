@@ -20,7 +20,7 @@ namespace Mapbox.BaseModule.Data.Platform.Cache.SQLiteCache
 		public const int PruneCacheDelta = 20;
 		
 		protected static string PersistantCacheRootFolderPath;
-		protected string CacheRootFolderName = "Mapbox/SqliteCache";
+		protected static string CacheRootFolderName = "Mapbox/SqliteCache";
 		protected string cacheFileName = "cache.db";
 		protected TaskManager _taskManager;
 		protected const int DATABASE_CODE_VERSION = 2;
@@ -419,6 +419,39 @@ CONSTRAINT tileAssignmentConstraint UNIQUE (tileId, mapId)
 			return isDeletedSuccesfully;
 		}
 		
+		public static bool DeleteSqliteFolder()
+		{
+			string cacheDirectory = Path.Combine(Application.persistentDataPath, CacheRootFolderName);
+			if (!Directory.Exists(cacheDirectory)) { return true; }
+
+			var isDeletedSuccesfully = true;
+			foreach (var filePath in Directory.GetFiles(cacheDirectory))
+			{
+				var error = string.Empty;
+				for (int i = 0; i < 5; i++)
+				{
+					Thread.Sleep(10);
+					try
+					{
+						isDeletedSuccesfully = true;
+						File.Delete(filePath);
+					}
+					catch (Exception e)
+					{
+						isDeletedSuccesfully = false;
+						error = e.ToString();
+					}
+				}
+
+				if (!isDeletedSuccesfully)
+				{
+					Debug.LogError(error);
+				}
+			}
+
+			return isDeletedSuccesfully;
+		}
+		
 		
 		
 		
@@ -577,7 +610,7 @@ CONSTRAINT tileAssignmentConstraint UNIQUE (tileId, mapId)
 		}
 		#endregion
 
-		private string GetFullDbPath(string dbName)
+		private static string GetFullDbPath(string dbName)
 		{
 			string dbPath = PersistantCacheRootFolderPath; //Path.Combine(Application.persistentDataPath, "cache");
 #if UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN || UNITY_WSA

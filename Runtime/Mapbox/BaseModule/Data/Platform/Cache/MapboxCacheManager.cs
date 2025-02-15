@@ -2,9 +2,11 @@
 using System.IO;
 using System.Linq;
 using Mapbox.BaseModule.Data.DataFetchers;
+using Mapbox.BaseModule.Data.Platform.Cache.SQLiteCache;
 using Mapbox.BaseModule.Data.Tasks;
 using Mapbox.BaseModule.Data.Tiles;
 using Mapbox.BaseModule.Unity;
+using UnityEditor;
 using UnityEngine;
 
 namespace Mapbox.BaseModule.Data.Platform.Cache
@@ -235,6 +237,17 @@ namespace Mapbox.BaseModule.Data.Platform.Cache
             _taskManager.CancelTask(key);
             key = tileId.GenerateKey(tilesetId, "ReadEtagExpiration");
             _taskManager.CancelTask(key);
+        }
+
+        [MenuItem("Mapbox/Clear Caches")]
+        public static void DeleteAllCache()
+        {
+            var sqliteDeleted = SqliteCache.DeleteSqliteFolder();
+            var fileCacheDeleted = FileCache.ClearAllFiles();
+            if (sqliteDeleted && fileCacheDeleted)
+            {
+                Debug.Log("Mapbox cache cleared");
+            }
         }
     }
 

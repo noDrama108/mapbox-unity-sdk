@@ -29,7 +29,7 @@ namespace Mapbox.BaseModule.Data.Platform.Cache
 	{
 		public event Action<MapboxTileData, string> FileSaved = (cacheItem, s) => { };
 
-		protected string CacheRootFolderName = "Mapbox/FileCache";
+		protected static string CacheRootFolderName = "Mapbox/FileCache";
 		public static string PersistantCacheRootFolderPath;
 		private static string FileExtension = "png";
 
@@ -307,6 +307,25 @@ namespace Mapbox.BaseModule.Data.Platform.Cache
 		{
 			return fileInfoFullName.Substring(FileCache.PersistantCacheRootFolderPath.Length,
 				fileInfoFullName.Length - FileCache.PersistantCacheRootFolderPath.Length).Trim('/');
+		}
+
+		public static bool ClearAllFiles()
+		{
+			try
+			{
+				DirectoryInfo di = new DirectoryInfo(Path.Combine(Application.persistentDataPath, CacheRootFolderName));
+				foreach (DirectoryInfo folder in di.GetDirectories())
+				{
+					folder.Delete(true);
+				}
+
+				return true;
+			}
+			catch (Exception e)
+			{
+				Debug.LogException(e);
+				return false;
+			}
 		}
 	}
 }
