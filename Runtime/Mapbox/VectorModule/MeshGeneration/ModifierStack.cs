@@ -24,7 +24,7 @@ namespace Mapbox.VectorModule.MeshGeneration
     {
         [Tooltip("Tiles will load and visuals will be visible if and only if current map is in this zoom range.")]
         public Vector2 VisibilityZoomRange = new Vector2(1, 20);
-        public bool MergeObjects = false;
+        public bool MergeObjects = true;
     }
 
     [Serializable]

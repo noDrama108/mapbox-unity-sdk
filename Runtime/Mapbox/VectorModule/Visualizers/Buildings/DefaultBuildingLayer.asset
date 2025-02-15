@@ -9,9 +9,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 839e2bbc3b9841e98d68b6aca7188d13, type: 3}
-  m_Name: RoadMaterial
+  m_Script: {fileID: 11500000, guid: dbafb4fa6dff39e41992450d63b53648, type: 3}
+  m_Name: DefaultBuildingLayer
   m_EditorClassIdentifier: 
-  _materialModifierImplementation:
-    _material:
-    - {fileID: 2100000, guid: 501de0e574fcb65479534006a174965a, type: 2}
+  _vectorLayerName: building
+  _mergeMeshes: 1
+  _modifierStackObjects:
+  - {fileID: 11400000, guid: 634babdad9341544aa18017f8e0e9813, type: 2}
