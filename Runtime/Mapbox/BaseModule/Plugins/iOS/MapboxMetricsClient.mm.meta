@@ -28,6 +28,7 @@ PluginImporter:
     second:
       enabled: 0
       settings:
+        AndroidSharedLibraryType: Executable
         CPU: ARMv7
   - first:
       Any: 
@@ -71,7 +72,7 @@ PluginImporter:
     second:
       enabled: 1
       settings:
-        AddToEmbeddedBinaries: true
+        AddToEmbeddedBinaries: false
         CPU: AnyCPU
         CompileFlags: 
         FrameworkDependencies: 
