@@ -94,6 +94,15 @@ namespace Mapbox.BaseModule.Utilities
 				longitude:Mathd.Lerp(rect.East, rect.West, zeroOne.x)
 			);
 		}
+		
+		public static LatitudeLongitude Tile01ToLatitudeLongitude(Vector3 zeroOne, CanonicalTileId tileId)
+		{
+			var rect = TileIdToBounds(tileId.X, tileId.Y, tileId.Z);
+			return new LatitudeLongitude(
+				latitude: Mathd.Lerp(rect.South, rect.North, 1 + zeroOne.z),
+				longitude:Mathd.Lerp(rect.West, rect.East, zeroOne.x)
+			);
+		}
 
 		/// <summary>
 		/// Converts WGS84 lat/lon to x/y meters in reference to a center point
