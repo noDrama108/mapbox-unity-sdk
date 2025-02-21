@@ -54,6 +54,12 @@ namespace Mapbox.BaseModule.Unity
             return rd;
         }
 
+        public void DisableImagery()
+        {
+            State = TileContainerState.Final;
+            _unityMapTile.Material.SetTexture(_mainTexFieldNameID, null);
+        }
+        
         public void OnDestroy()
         {
             //anything to finalize here?
