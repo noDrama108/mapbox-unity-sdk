@@ -7,7 +7,7 @@ namespace Mapbox.BaseModule.Data.DataFetchers
     [Serializable]
     public class TerrainData : RasterData
     {
-        public float[] ElevationValues;
+        [HideInInspector] public float[] ElevationValues;
         public bool IsElevationDataReady = false;
         public Action ElevationValuesUpdated = () => { };
         
