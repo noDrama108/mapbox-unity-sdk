@@ -46,8 +46,6 @@ namespace Mapbox.VectorModule.Editor
         
         private void OnEnable()
         {
-            m_filters = serializedObject.FindProperty(nameof(VectorFilterStackObject.Filters));
-            UpdateEditorList();
             var editorObj = new SerializedObject(this);
             m_FalseBool = editorObj.FindProperty(nameof(falseBool));
             _magnifier = EditorGUIUtility.FindTexture("d_ViewToolZoom");
@@ -58,6 +56,8 @@ namespace Mapbox.VectorModule.Editor
         {
             if (m_filters == null)
             {
+                m_filters = serializedObject.FindProperty(nameof(VectorFilterStackObject.Filters));
+                UpdateEditorList();
                 return;
             }
             else if (m_filters.arraySize != m_Editors.Count)
