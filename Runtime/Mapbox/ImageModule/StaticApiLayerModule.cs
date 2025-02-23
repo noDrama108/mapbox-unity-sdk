@@ -33,7 +33,7 @@ namespace Mapbox.ImageModule
 		
 		public virtual void LoadTempTile(UnityMapTile unityTile)
 		{
-			if (unityTile.CanonicalTileId.Z < _settings.DataSettings.RejectTilesBelowZoom)
+			if (unityTile.CanonicalTileId.Z < _settings.RejectTilesOutsideZoom.X)
 			{
 				//unityTile.ImageContainer.DisableImagery();
 				return;
@@ -53,7 +53,7 @@ namespace Mapbox.ImageModule
 
 		public virtual bool LoadInstant(UnityMapTile unityTile)
 		{
-			if (unityTile.CanonicalTileId.Z < _settings.DataSettings.RejectTilesBelowZoom)
+			if (unityTile.CanonicalTileId.Z < _settings.RejectTilesOutsideZoom.X)
 			{
 				//unityTile.ImageContainer.DisableImagery();
 				return true;

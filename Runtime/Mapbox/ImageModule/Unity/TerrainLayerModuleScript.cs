@@ -18,10 +18,10 @@ namespace Mapbox.Example.Scripts.ModuleBehaviours
 	{
 		public TerrainLayerModuleSettings Settings = new TerrainLayerModuleSettings()
 		{
+			RejectTilesOutsideZoom = new Vector2(10, 25),
 			DataSettings = new ImageSourceSettings()
 			{
-				RejectTilesBelowZoom = 12,
-				ClampTilesToMax = 14
+				ClampDataLevelToMax = 14
 			}
 		};
 
