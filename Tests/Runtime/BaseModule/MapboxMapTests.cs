@@ -60,7 +60,7 @@ namespace Mapbox.BaseModuleTests.DataTests
                     sqliteCache),
                 dataManager);
             
-            _map = new MapboxMap(mapInfo, mapService);
+            _map = new MapboxMap(mapInfo, unityContext, mapService);
             var mapVisualizer = new MapboxMapVisualizer(mapInfo, unityContext, new TileCreator(unityContext, new FlatTerrainStrategy()));
             _map.MapVisualizer = mapVisualizer;
         }
@@ -79,8 +79,8 @@ namespace Mapbox.BaseModuleTests.DataTests
         [Test]
         public void LatLngConversion()
         {
-            var latlngToPosition = _map.mapInformation.ConvertLatLngToPosition(_helsinkiLatLng);
-            var posToLatlng = _map.mapInformation.ConvertPositionToLatLng(Vector3.zero);
+            var latlngToPosition = _map.MapInformation.ConvertLatLngToPosition(_helsinkiLatLng);
+            var posToLatlng = _map.MapInformation.ConvertPositionToLatLng(Vector3.zero);
             
             Assert.AreEqual(latlngToPosition.x, 0);
             Assert.AreEqual(latlngToPosition.y, 0);
@@ -95,7 +95,7 @@ namespace Mapbox.BaseModuleTests.DataTests
         [Test]
         public void CacheManager()
         {
-            var mapService = (MapUnityService) _map.GetMapService();
+            var mapService = (MapUnityService) _map.MapService;
             var cacheManager = mapService.GetCacheManager();
             Assert.IsNotNull(cacheManager);
         }
@@ -103,7 +103,7 @@ namespace Mapbox.BaseModuleTests.DataTests
         [UnityTest]
         public IEnumerator TileJson()
         {
-            var mapService = (MapUnityService) _map.GetMapService();
+            var mapService = (MapUnityService) _map.MapService;
             var dataFetcher = mapService.GetFetchingManager();
             Assert.IsNotNull(dataFetcher);
             var tileJson = dataFetcher.GetTileJSON();
@@ -140,8 +140,8 @@ namespace Mapbox.BaseModuleTests.DataTests
         public void ChangeViewToSF()
         {
             _map.ChangeView(_sfLatLng);
-            var latlngToPosition = _map.mapInformation.ConvertLatLngToPosition(_sfLatLng);
-            var posToLatlng = _map.mapInformation.ConvertPositionToLatLng(Vector3.zero);
+            var latlngToPosition = _map.MapInformation.ConvertLatLngToPosition(_sfLatLng);
+            var posToLatlng = _map.MapInformation.ConvertPositionToLatLng(Vector3.zero);
             
             Assert.AreEqual(latlngToPosition.x, 0);
             Assert.AreEqual(latlngToPosition.y, 0);
@@ -150,15 +150,15 @@ namespace Mapbox.BaseModuleTests.DataTests
             Assert.AreEqual(posToLatlng.Longitude, _sfLatLng.Longitude, 0.001f);
 
             _map.ChangeView(_sfLatLng, 12, 45, 30);
-            Assert.AreEqual(_map.mapInformation.Zoom, 12);
-            Assert.AreEqual(_map.mapInformation.Pitch, 45);
-            Assert.AreEqual(_map.mapInformation.Bearing, 30);
+            Assert.AreEqual(_map.MapInformation.Zoom, 12);
+            Assert.AreEqual(_map.MapInformation.Pitch, 45);
+            Assert.AreEqual(_map.MapInformation.Bearing, 30);
         }
     }
 
     public class DataFetcherTests
     {
-        private DataFetchingManager _datafetcher;
+        private LoggingDataFetchingManager _datafetcher;
         private CanonicalTileId _tileId;
         private string _tilesetId;
         
@@ -167,7 +167,7 @@ namespace Mapbox.BaseModuleTests.DataTests
         public void OneTimeSetup()
         {
             var mapboxContext = new MapboxContext();
-            _datafetcher = new DataFetchingManager(mapboxContext.GetAccessToken(), mapboxContext.GetSkuToken);
+            _datafetcher = new LoggingDataFetchingManager(mapboxContext.GetAccessToken(), mapboxContext.GetSkuToken);
             var vectorTileset = MapboxDefaultVector.GetParameters(VectorSourceType.MapboxStreetsV8);
             _tilesetId = vectorTileset.Id;
             _tileId = Conversions.LatitudeLongitudeToTileId(Conversions.StringToLatLon("60.1734031,24.9428875"), 16).Canonical;
@@ -182,13 +182,13 @@ namespace Mapbox.BaseModuleTests.DataTests
             {
                 isDone = true;
             }));
-            Assert.AreEqual(_datafetcher.TaskCount, 1);
+            Assert.AreEqual(_datafetcher.TotalRequestCount, 1);
             while (isDone == false) yield return null;
             
             Assert.NotNull(tile);
             Assert.NotNull(tile.ByteData);
             Assert.IsNotEmpty(tile.ByteData);
-            Assert.AreEqual(_datafetcher.TaskCount, 0);
+            Assert.AreEqual(_datafetcher.TotalRequestCount, 0);
         }
         
         
@@ -201,13 +201,13 @@ namespace Mapbox.BaseModuleTests.DataTests
             {
                 isDone = true;
             }));
-            Assert.AreEqual(_datafetcher.TaskCount, 1);
+            Assert.AreEqual(_datafetcher.TotalRequestCount, 1);
             _datafetcher.CancelFetching(tile, _tilesetId);
             while (isDone == false) yield return null;
             
             Assert.NotNull(tile);
             Assert.AreEqual(tile.CurrentTileState, TileState.Canceled);
-            Assert.AreEqual(_datafetcher.TaskCount, 0);
+            Assert.AreEqual(_datafetcher.TotalRequestCount, 0);
         }
     }
 }

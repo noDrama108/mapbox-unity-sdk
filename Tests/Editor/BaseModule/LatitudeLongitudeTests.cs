@@ -26,7 +26,7 @@ namespace Mapbox.BaseModuleTests
         public void NullIsland()
         {
             var lngLat = new LatitudeLongitude(0, 0);
-            Assert.AreEqual("0.00000,0.00000", lngLat.ToString());
+            Assert.AreEqual("0,0", lngLat.ToString());
         }
 
         [Test]

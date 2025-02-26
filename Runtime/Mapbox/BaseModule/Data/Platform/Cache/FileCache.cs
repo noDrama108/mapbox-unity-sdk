@@ -162,7 +162,7 @@ namespace Mapbox.BaseModule.Data.Platform.Cache
 
 		public virtual void DeleteTileFile(MapboxTileData cacheItem)
 		{
-			var filePath = TileToRelativePath(cacheItem);
+			var filePath = TileToPathFileInfoExpects(cacheItem);
 			if (File.Exists(filePath))
 			{
 				File.Delete(filePath);
@@ -234,10 +234,7 @@ namespace Mapbox.BaseModule.Data.Platform.Cache
 				}, 4);
 		}
 
-		private string TileToRelativePath(MapboxTileData cacheItem)
-		{
-			return TileToRelativeFilePath(cacheItem.TileId, cacheItem.TilesetId);
-		}
+		
 
 		protected virtual void OnFileSaved(MapboxTileData infoTextureCacheItem, string path)
 		{
@@ -286,6 +283,16 @@ namespace Mapbox.BaseModule.Data.Platform.Cache
 			}
 		}
 
+		private string TileToRelativePath(MapboxTileData cacheItem)
+		{
+			return TileToRelativeFilePath(cacheItem.TileId, cacheItem.TilesetId);
+		}
+		
+		public string TileToPathFileInfoExpects(MapboxTileData cacheItem)
+		{
+			return RelativeFilePathToFileInfoExpects(TileToRelativeFilePath(cacheItem.TileId, cacheItem.TilesetId));
+		}
+		
 		public string TileToPathFileInfoExpects(CanonicalTileId tileId, string tilesetId)
 		{
 			return RelativeFilePathToFileInfoExpects(TileToRelativeFilePath(tileId, tilesetId));

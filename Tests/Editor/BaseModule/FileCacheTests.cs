@@ -63,7 +63,7 @@ namespace Mapbox.BaseModuleTests
                 resultFilePath = s;
             });
             Assert.IsNotEmpty(resultFilePath);
-            Assert.True(File.Exists(resultFilePath));
+            Assert.True(File.Exists(Path.Combine(FileCache.PersistantCacheRootFolderPath, resultFilePath)));
         }
 
         [Test]
