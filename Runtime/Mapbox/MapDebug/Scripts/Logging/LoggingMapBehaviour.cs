@@ -8,7 +8,9 @@ using Mapbox.BaseModule.Utilities;
 using Mapbox.Example.Scripts.ModuleBehaviours;
 using Mapbox.Example.Scripts.TileProviderBehaviours;
 using Mapbox.ImageModule.Terrain.TerrainStrategies;
+#if UNITY_RECORDER
 using Mapbox.MapDebug.Sequence;
+#endif
 using Mapbox.UnityMapService;
 using Mapbox.UnityMapService.TileProviders;
 using UnityEngine;
@@ -44,7 +46,7 @@ namespace Mapbox.MapDebug.Scripts.Logging
         [ContextMenu("Initialize Map")]
         public void Initialize()
         {
-            _mapLogger = gameObject.AddComponent<MapLogger>();
+            _mapLogger = gameObject.GetComponent<MapLogger>();
 #if UNITY_RECORDER
             _mapLogger.AddLogger(_infoSequence);
             _infoSequence = FindObjectOfType<SequenceControllerBehaviour>() ?? gameObject.AddComponent<SequenceControllerBehaviour>();
@@ -140,11 +142,12 @@ namespace Mapbox.MapDebug.Scripts.Logging
             if (CacheManager != null)
                 return CacheManager.GetCacheManager(unityContext, dataFetchingManager);
             
-            SqliteCache sqliteCache = null;
-            FileCache fileCache = null;
-            sqliteCache = new SqliteCache(unityContext.TaskManager, 1000);
-            fileCache = new FileCache(unityContext.TaskManager);
-
+            var sqliteCache = new MockSqliteCache(unityContext.TaskManager, 1000);
+            var fileCache = new MockFileCache(unityContext.TaskManager);
+            
+            _mapLogger.AddLogger(fileCache);
+            _mapLogger.AddLogger(sqliteCache);
+            
             var cacheManager = new MapboxCacheManager(
                 unityContext,
                 new MemoryCache(),

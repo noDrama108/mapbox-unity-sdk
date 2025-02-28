@@ -3,11 +3,13 @@ using System.Collections.Generic;
 using System.IO;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Mapbox.MapDebug.Scripts
 {
     public class MapLogger : MonoBehaviour
     {
+        public Text LogText;
         public bool PrintScreen = true;
         public List<ILogWriter> LogWriters;
         private string _path;
@@ -47,17 +49,19 @@ namespace Mapbox.MapDebug.Scripts
                     _screenLogs.Add(logger.PrintScreen());
                 }
 
+                LogText.text = "";
                 var index = 0;
                 var fromTop = 0f;
                 foreach (var screenLog in _screenLogs)
                 {
                     if (!string.IsNullOrEmpty(screenLog))
                     {
-                        var content = new GUIContent(screenLog);
-                        var v2 = style.CalcSize(content);
-                        GUI.Label(new Rect(0, fromTop, v2.x, v2.y), content, style);
-                        fromTop += v2.y;
-                        index++;
+                        LogText.text += screenLog + Environment.NewLine;
+                        // var content = new GUIContent(screenLog);
+                        // var v2 = style.CalcSize(content);
+                        // GUI.Label(new Rect(0, fromTop, v2.x, v2.y), content, style);
+                        // fromTop += v2.y;
+                        // index++;
                     }
                 }
             }

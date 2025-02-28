@@ -305,7 +305,7 @@ CONSTRAINT tileAssignmentConstraint UNIQUE (tileId, mapId)
 			}
 		}
 
-		public void ReadEtagAndExpiration<T>(T data) where T : MapboxTileData
+		public virtual void ReadEtagAndExpiration<T>(T data) where T : MapboxTileData
 		{
 			lock (_lock)
 			{

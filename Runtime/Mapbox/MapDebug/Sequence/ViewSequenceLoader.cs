@@ -1,3 +1,4 @@
+#if UNITY_RECORDER && UNITY_EDITOR
 using System.IO;
 using System.Linq;
 using Mapbox.BaseModule.Map;
@@ -30,3 +31,4 @@ namespace Mapbox.MapDebug.Sequence
         }
     }
 }
+#endif
