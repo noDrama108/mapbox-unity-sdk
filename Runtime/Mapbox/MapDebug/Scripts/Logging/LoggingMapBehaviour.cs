@@ -20,7 +20,6 @@ namespace Mapbox.MapDebug.Scripts.Logging
     public class LoggingMapBehaviour : MapBehaviourCore
     {
         private MapLogger _mapLogger;
-        public MapInformation MapInformation;
         public UnityContext UnityContext;
         [SerializeField] protected MapboxCacheManagerBehaviour CacheManager;
 
@@ -44,7 +43,7 @@ namespace Mapbox.MapDebug.Scripts.Logging
         }
         
         [ContextMenu("Initialize Map")]
-        public void Initialize()
+        public override void Initialize()
         {
             _mapLogger = FindObjectOfType<MapLogger>();
 #if UNITY_RECORDER

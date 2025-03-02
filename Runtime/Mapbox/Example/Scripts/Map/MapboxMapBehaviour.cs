@@ -19,8 +19,6 @@ namespace Mapbox.Example.Scripts.Map
 {
     public class MapboxMapBehaviour : MapBehaviourCore
     {
-        [Tooltip("Initial map view parameters")]
-        public MapInformation MapInformation;
         [Tooltip("Unity tools for map to use")]
         public UnityContext UnityContext;
 
@@ -41,7 +39,7 @@ namespace Mapbox.Example.Scripts.Map
         }
         
         [ContextMenu("Initialize")]
-        public void Initialize()
+        public override void Initialize()
         {
             if (InitializationStatus != InitializationStatus.WaitingForInitialization)
                 return;
