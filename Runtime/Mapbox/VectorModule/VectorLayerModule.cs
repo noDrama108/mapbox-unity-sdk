@@ -173,7 +173,10 @@ namespace Mapbox.VectorModule
 			foreach (var tile in tiles)
 			{
 				var targetId = GetTargetTileId(tile);
-				targetTileIds.Add(targetId);
+				if (IsZinSupportedRange(targetId.Z))
+				{
+					targetTileIds.Add(targetId);
+				}
 			}
 
 			//we calculate the targetTileIds first and then start the process because multiple tiles targeting same
