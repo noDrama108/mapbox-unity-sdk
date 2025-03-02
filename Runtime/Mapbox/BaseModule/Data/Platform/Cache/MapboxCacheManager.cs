@@ -190,15 +190,15 @@ namespace Mapbox.BaseModule.Data.Platform.Cache
         /// If we don't do that, those files will pile up (assuming systems loses track due to a bug somehow) and fill all the disk
         /// Vice versa (file doesn't exists, sqlite entry does) isn't important as entry will be cycled out soon anyway
         /// </summary>
-        private void CheckSqlAndFileIntegrity(bool firstRun = true)        
+        private void CheckSqlAndFileIntegrity(bool firstRun = true)
         {
             if (_sqLiteCache == null || _textureFileCache == null) return;
             
             var sqlTileList = _sqLiteCache.GetAllTiles();
             var fileList = _textureFileCache.GetFileList();
 
-            // Debug.Log("sqlite " + string.Join(Environment.NewLine, sqlTileList.Select(x => x.tile_path)));
-            // Debug.Log("file " + string.Join(Environment.NewLine, fileList));
+            Debug.Log("sqlite " + string.Join(Environment.NewLine, sqlTileList.Select(x => x.tile_path)));
+            Debug.Log("file " + string.Join(Environment.NewLine, fileList));
             
             foreach (var tile in sqlTileList)
             {

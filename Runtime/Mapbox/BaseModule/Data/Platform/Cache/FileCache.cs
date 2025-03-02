@@ -41,7 +41,7 @@ namespace Mapbox.BaseModule.Data.Platform.Cache
 		public FileCache(TaskManager taskManager, string folderNamePostFix = "")
 		{
 			CacheRootFolderName += folderNamePostFix;
-			PersistantCacheRootFolderPath = Path.Combine(Application.persistentDataPath, CacheRootFolderName);
+			PersistantCacheRootFolderPath = Path.GetFullPath(Path.Combine(Application.persistentDataPath, CacheRootFolderName));
 			_taskManager = taskManager;
 			_fileDataFetcher = new FileDataFetcher();
 			MapIdToFolderNameDictionary = new Dictionary<string, string>();
@@ -148,6 +148,10 @@ namespace Mapbox.BaseModule.Data.Platform.Cache
 			{
 				File.Delete(path);
 			}
+			else
+			{
+				Debug.Log($"File {path} does not exist");
+			}
 		}
 
 		public virtual void ClearAll()
@@ -212,6 +216,7 @@ namespace Mapbox.BaseModule.Data.Platform.Cache
 					TilesetId = info.TextureCacheItem.TilesetId,
 					Action = () =>
 					{
+						var fullPath = RelativeFilePathToFileInfoExpects(info.Path);
 						FileStream sourceStream = new FileStream(
 							RelativeFilePathToFileInfoExpects(info.Path),
 							FileMode.Create, FileAccess.Write, FileShare.Read,
@@ -220,9 +225,10 @@ namespace Mapbox.BaseModule.Data.Platform.Cache
 						sourceStream.Write(info.TextureCacheItem.Data, 0, info.TextureCacheItem.Data.Length);
 						sourceStream.Close();
 
-						info.PostSaveAction(info.Path);
+						var finalRelativePath = FullFilePathToRelativePath(fullPath);
+						info.PostSaveAction(finalRelativePath);
 						//Debug.Log(string.Format("File saved {0} - {1}", info.TextureCacheItem.TileId, info.Path));
-						OnFileSaved(info.TextureCacheItem, info.Path);
+						OnFileSaved(info.TextureCacheItem, finalRelativePath);
 					},
 					ContinueWith = (t) =>
 					{
@@ -293,20 +299,22 @@ namespace Mapbox.BaseModule.Data.Platform.Cache
 		
 		public string RelativeFilePathToFileInfoExpects(string relativeFilePath)
 		{
-			var fullPath = Path.Combine(PersistantCacheRootFolderPath, relativeFilePath); 
+			var fullPath = Path.GetFullPath(Path.Combine(PersistantCacheRootFolderPath, relativeFilePath)); 
 			return fullPath;
 		}
 
 		public string RelativePathToUnityRequestExpects(string relativeFilePath)
 		{
-			var fullPath = Path.Combine(PersistantCacheRootFolderPath, relativeFilePath);
+			var fullPath = Path.GetFullPath(Path.Combine(PersistantCacheRootFolderPath, relativeFilePath));
+			//I'm not sure if there's a better way to do this "file://" thing but unity needs that
+			//otherwise it adds https which of course fails the web requests
 			return fullPath.Insert(0, "file://");
 		}
 		
 		private string FullFilePathToRelativePath(string fileInfoFullName)
 		{
 			return fileInfoFullName.Substring(FileCache.PersistantCacheRootFolderPath.Length,
-				fileInfoFullName.Length - FileCache.PersistantCacheRootFolderPath.Length).Trim('/');
+				fileInfoFullName.Length - FileCache.PersistantCacheRootFolderPath.Length).Trim('/').Trim('\\');
 		}
 
 		public static bool ClearAllFiles()
