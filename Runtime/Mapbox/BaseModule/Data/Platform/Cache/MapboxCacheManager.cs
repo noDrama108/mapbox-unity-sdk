@@ -184,7 +184,7 @@ namespace Mapbox.BaseModule.Data.Platform.Cache
         {
             return _memoryCache.RegisterType<T>(owner, cacheSize);
         }
-        
+
         /// <summary>
         /// We check for files that exists but not tracked in sqlite file and delete them all
         /// If we don't do that, those files will pile up (assuming systems loses track due to a bug somehow) and fill all the disk

@@ -29,9 +29,9 @@ namespace Mapbox.BaseModule.Data.Platform.Cache
 	{
 		public event Action<MapboxTileData, string> FileSaved = (cacheItem, s) => { };
 
-		protected static string CacheRootFolderName = "Mapbox/FileCache";
-		public static string PersistantCacheRootFolderPath;
-		private static string FileExtension = "png";
+		protected string CacheRootFolderName = "Mapbox/FileCache";
+		public string PersistantCacheRootFolderPath;
+		private string FileExtension = "png";
 
 		protected FileDataFetcher _fileDataFetcher;
 		protected Dictionary<string, string> MapIdToFolderNameDictionary;
@@ -166,7 +166,7 @@ namespace Mapbox.BaseModule.Data.Platform.Cache
 
 		public virtual void DeleteTileFile(MapboxTileData cacheItem)
 		{
-			var filePath = TileToRelativePath(cacheItem);
+			var filePath = TileToPathFileInfoExpects(cacheItem);
 			if (File.Exists(filePath))
 			{
 				File.Delete(filePath);
@@ -178,7 +178,7 @@ namespace Mapbox.BaseModule.Data.Platform.Cache
 			var pathList = new HashSet<string>();
 			if (Directory.Exists(PersistantCacheRootFolderPath))
 			{
-				var dir = Directory.GetDirectories(FileCache.PersistantCacheRootFolderPath);
+				var dir = Directory.GetDirectories(PersistantCacheRootFolderPath);
 				foreach (var rasterDirectory in dir)
 				{
 					var directoryInfo = new DirectoryInfo(rasterDirectory);
@@ -240,10 +240,7 @@ namespace Mapbox.BaseModule.Data.Platform.Cache
 				}, 4);
 		}
 
-		private string TileToRelativePath(MapboxTileData cacheItem)
-		{
-			return TileToRelativeFilePath(cacheItem.TileId, cacheItem.TilesetId);
-		}
+		
 
 		protected virtual void OnFileSaved(MapboxTileData infoTextureCacheItem, string path)
 		{
@@ -292,6 +289,16 @@ namespace Mapbox.BaseModule.Data.Platform.Cache
 			}
 		}
 
+		private string TileToRelativePath(MapboxTileData cacheItem)
+		{
+			return TileToRelativeFilePath(cacheItem.TileId, cacheItem.TilesetId);
+		}
+		
+		public string TileToPathFileInfoExpects(MapboxTileData cacheItem)
+		{
+			return RelativeFilePathToFileInfoExpects(TileToRelativeFilePath(cacheItem.TileId, cacheItem.TilesetId));
+		}
+		
 		public string TileToPathFileInfoExpects(CanonicalTileId tileId, string tilesetId)
 		{
 			return RelativeFilePathToFileInfoExpects(TileToRelativeFilePath(tileId, tilesetId));
@@ -313,18 +320,21 @@ namespace Mapbox.BaseModule.Data.Platform.Cache
 		
 		private string FullFilePathToRelativePath(string fileInfoFullName)
 		{
-			return fileInfoFullName.Substring(FileCache.PersistantCacheRootFolderPath.Length,
-				fileInfoFullName.Length - FileCache.PersistantCacheRootFolderPath.Length).Trim('/').Trim('\\');
+			return fileInfoFullName.Substring(PersistantCacheRootFolderPath.Length,
+				fileInfoFullName.Length - PersistantCacheRootFolderPath.Length).Trim('/').Trim('\\');
 		}
 
 		public static bool ClearAllFiles()
 		{
 			try
 			{
-				DirectoryInfo di = new DirectoryInfo(Path.Combine(Application.persistentDataPath, CacheRootFolderName));
+				DirectoryInfo di = new DirectoryInfo(Path.Combine(Application.persistentDataPath, "Mapbox"));
 				foreach (DirectoryInfo folder in di.GetDirectories())
 				{
-					folder.Delete(true);
+					if (folder.Name.StartsWith("FileCache"))
+					{
+						folder.Delete(true);
+					}
 				}
 
 				return true;

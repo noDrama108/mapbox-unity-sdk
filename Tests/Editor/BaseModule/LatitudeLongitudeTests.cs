@@ -26,14 +26,14 @@ namespace Mapbox.BaseModuleTests
         public void NullIsland()
         {
             var lngLat = new LatitudeLongitude(0, 0);
-            Assert.AreEqual("0.00000,0.00000", lngLat.ToString());
+            Assert.AreEqual("0,0", lngLat.ToString());
         }
 
         [Test]
         public void WashingtonDCLatitudeLontitude()
         {
             var lngLat = new LatitudeLongitude(-77.0295, 38.9165);
-            Assert.AreEqual("-77.02950,38.91650", lngLat.ToString());
+            Assert.AreEqual("-77.0295,38.9165", lngLat.ToString());
         }
         
         [Test]

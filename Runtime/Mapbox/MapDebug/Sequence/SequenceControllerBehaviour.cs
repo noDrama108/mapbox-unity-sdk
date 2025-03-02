@@ -1,4 +1,4 @@
-#if UNITY_RECORDER
+#if UNITY_RECORDER && UNITY_EDITOR
 using System;
 using System.Collections;
 using System.Collections.Generic;
