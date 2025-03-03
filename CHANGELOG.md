@@ -1,4 +1,18 @@
 ## CHANGELOG
+
+### v3.0.2
+Critical fixes and improvements for developers using Windows OS and developers using Unity 6.0 
+- Fix the android build problems with Unity 6.0. Settings files and android build procedure has changed, you can check the ReadMe file for the new instructions.
+- Fix a bug where long-term cache wasn't working as intended during development time on Windows machines.
+- Fix a bug where caching system caused app freezes on launch.
+- Fix a bug where JsonUtility couldn't parse response JSON on IL2CPP builds.
+- Add new settings under image, terrain and vector modules to help limit and control their work.
+- Change TileCreator class to work through an interface.
+- Fix the compilation issues in the test module.
+- Fix and update the MapDebug module.
+- Fix a bug where vector module didn't respect zoom level limits on first view load.
+
+### v3.0.1
 ### v3.0.0
 
 

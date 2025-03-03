@@ -110,18 +110,16 @@ By following these steps, your map will dynamically update based on the device's
 To build your map application for the Android platform, you'll need specific settings files included in the Mapbox Unity SDK package. Follow these steps:
 
 ##### Step 1: Copy Required Files
-- Copy the `Mapbox Unity SDK/Runtime/Plugins` folder into your project, placing it under the `Assets` folder.
+- Go to the `Mapbox Unity SDK/Runtime/AndroidBuildSettings` folder, you'll find a few folders named after Unity Editor Version.
+- Find the one matching (or closest lower) with the version you are using
+- Copy the `Plugins` folder inside to your project. Place it under the `Assets` folder.
 
 ###### Step 1b: Merging Custom Android Settings (if applicable)
 - If your project already contains custom Android settings, merge them with the copied files to ensure compatibility.
 
 ##### Step 2: Verify Player Settings
 - Open **Project Settings** and navigate to the **Player** section.
-- Under the **Publish Settings** section (at the bottom), verify the following fields:
-  - `Custom Manifest`
-  - `Custom Gradle`
-  - `Custom Main Gradle`
-- Ensure these fields are automatically set by Unity and reference the files you just copied.
+- Under the **Publish Settings** section (at the bottom), verify that the custom setting files we just copied are applied.
 
 ##### Step 3: Build Your Application
 - After completing the above steps, build your application for the Android platform.
