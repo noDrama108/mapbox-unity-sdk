@@ -2739,6 +2739,7 @@ MonoBehaviour:
       UseRetinaTextures: 1
       UseNonReadableTextures: 1
       CacheSize: 100
+      ClampDataLevelToMax: 25
 --- !u!4 &7512784582878372037
 Transform:
   m_ObjectHideFlags: 0
@@ -2799,7 +2800,8 @@ MonoBehaviour:
     LoadBackgroundData: 0
     DataSettings:
       CacheSize: 100
-      ActiveZoomLevelRange: {x: 12, y: 16}
+      ClampDataLevelToMax: 16
+    RejectTilesOutsideZoom: {x: 12, y: 16}
   _layerVisualizers:
   - {fileID: 11400000, guid: 4aa8336b8547a4f4fa3bff4d3fb0c106, type: 2}
 --- !u!1 &7512784582878372040
@@ -3131,7 +3133,7 @@ MonoBehaviour:
     BaseTileRoot: {fileID: 0}
     RuntimeGenerationRoot: {fileID: 0}
   CacheManager: {fileID: 0}
-  InitializeOnStart: 1
+  InitializeOnStart: 0
   _tileCreatorBehaviour: {fileID: 7512784582878372038}
   TileProvider: {fileID: 555719920711164266}
 --- !u!1660057539 &9223372036854775807
