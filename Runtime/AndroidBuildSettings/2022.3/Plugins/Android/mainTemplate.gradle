@@ -12,6 +12,8 @@ dependencies {
     implementation group: 'com.squareup.okhttp3', name: 'okhttp', version: '4.10.0'
     runtimeOnly group: 'com.squareup.okio', name: 'okio-jvm', version: '3.4.0'
     implementation group: 'com.google.code.gson', name: 'gson', version: '2.10.1'
+    implementation group: 'com.google.android.gms', name: 'play-services-cronet', version: '18.0.1'
+    implementation group: 'com.google.android.gms', name: 'play-services-location', version: '20.0.0'
 
 **DEPS**}
 
