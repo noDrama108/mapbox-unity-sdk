@@ -11,7 +11,7 @@ namespace Mapbox.MapDebug.Scripts
     {
         public Text LogText;
         public bool PrintScreen = true;
-        public List<ILogWriter> LogWriters;
+        public List<ILogWriter> LogWriters = new List<ILogWriter>();
         private string _path;
         private GUIStyle style;
         private List<string> _screenLogs;
