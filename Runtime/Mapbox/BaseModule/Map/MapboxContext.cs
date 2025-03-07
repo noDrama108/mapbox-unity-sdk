@@ -122,6 +122,7 @@ namespace Mapbox.BaseModule.Map
                 var configurationFilePath = Constants.Path.MAPBOX_CONFIG_ABSOLUTE;
                 var json = JsonUtility.ToJson(Configuration);
                 File.WriteAllText(configurationFilePath, json);
+                Debug.Log("Successfully set telemetry collection state to " + state);
                 return true;
             }
             catch (Exception e)
