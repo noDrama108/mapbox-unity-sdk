@@ -43,7 +43,7 @@ namespace Mapbox.BaseModule.Data.Platform.Cache
 
             if (_sqLiteCache != null && _textureFileCache != null)
             {
-                _sqLiteCache.DataPruned += path => _textureFileCache.DeleteByFileRelativePath(path);
+                _sqLiteCache.DataPrunedForFile += path => _textureFileCache.DeleteByFileRelativePath(path);
             }
             
             if (_sqLiteCache != null)

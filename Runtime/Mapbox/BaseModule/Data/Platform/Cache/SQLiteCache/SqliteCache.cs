@@ -15,7 +15,7 @@ namespace Mapbox.BaseModule.Data.Platform.Cache.SQLiteCache
 {
 	public class SqliteCache : ISqliteCache, IDisposable
 	{
-		public event Action<string> DataPruned = s => { };
+		public event Action<string> DataPrunedForFile = s => { };
 
 		public const int PruneCacheDelta = 20;
 		
@@ -664,7 +664,7 @@ CONSTRAINT tileAssignmentConstraint UNIQUE (tileId, mapId)
 				tiles tile = null;
 				try
 				{
-					var cmd = _sqlite.CreateCommand("SELECT * FROM tiles WHERE rowid IN ( SELECT rowid FROM tiles ORDER BY timestamp ASC LIMIT ? );", toDelete);
+					var cmd = _sqlite.CreateCommand("SELECT * FROM tiles WHERE tile_path <> '' AND rowid IN ( SELECT rowid FROM tiles ORDER BY timestamp ASC LIMIT ? );", toDelete);
 					var tilesToDelete = cmd.ExecuteQuery<tiles>();
 					DeleteFile(tilesToDelete);
 						
@@ -688,7 +688,7 @@ CONSTRAINT tileAssignmentConstraint UNIQUE (tileId, mapId)
 		{
 			foreach (var tile in tilesToDelete)
 			{
-				DataPruned(tile.tile_path);
+				DataPrunedForFile(tile.tile_path);
 			}
 		}
 
