@@ -35,6 +35,9 @@ namespace Mapbox.BaseModule.Map
 
             Status = InitializationStatus.Initializing;
             yield return MapVisualizer.Initialize();
+            MapVisualizer.TileLoaded += tile => { TileLoaded(tile); };
+            MapVisualizer.TileUnloading += tile => { TileUnloading(tile); };
+            
             Status = InitializationStatus.Initialized;
             Initialized();
             
@@ -52,9 +55,12 @@ namespace Mapbox.BaseModule.Map
             LoadViewStarting();
             Runnable.Instance.StartCoroutine(LoadMapViewCoroutine(() =>
             {
-                Status = InitializationStatus.ReadyForUpdates;
+                MapService.TileCover(MapInformation, TileCover);
+                MapVisualizer.LoadSnapshot(TileCover);
+                
                 callback?.Invoke();
                 LoadViewCompleted();
+                Status = InitializationStatus.ReadyForUpdates;
             }));
         }
         
@@ -65,11 +71,15 @@ namespace Mapbox.BaseModule.Map
             MapInformation.SetInformation(coordinates);
             Runnable.Instance.StartCoroutine(LoadMapViewCoroutine(() =>
             {
-                callback();
+                MapService.TileCover(MapInformation, TileCover);
+                MapVisualizer.LoadSnapshot(TileCover);
+                
+                callback?.Invoke();
+                LoadViewCompleted();
                 Status = InitializationStatus.ReadyForUpdates;
             }));
         }
-
+  
         public IEnumerator LoadMapViewCoroutine(Action callback)
         {
             var tileCover = new TileCover();
@@ -83,10 +93,6 @@ namespace Mapbox.BaseModule.Map
             MapInformation.SetInformation(latlng, zoom, pitch, bearing);
         }
         
-        public Action Initialized = () => {};
-        public Action LoadViewStarting = () => { };
-        public Action LoadViewCompleted = () => { };
-        
         public void OnDestroy()
         {
             MapVisualizer?.OnDestroy();
@@ -94,6 +100,12 @@ namespace Mapbox.BaseModule.Map
         }
 
         public void UpdateTileCover() => MapService.TileCover(MapInformation, TileCover);
+        
+        public Action Initialized = () => {};
+        public Action LoadViewStarting = () => { };
+        public Action LoadViewCompleted = () => { };
+        public Action<UnityMapTile> TileLoaded = (tile) => { };
+        public Action<UnityMapTile> TileUnloading = (tile) => { };
     }
 }
 

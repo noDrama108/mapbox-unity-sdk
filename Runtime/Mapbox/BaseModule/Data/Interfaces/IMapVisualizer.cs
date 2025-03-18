@@ -10,10 +10,14 @@ namespace Mapbox.BaseModule.Data.Interfaces
     public interface IMapVisualizer
     {
         public void Load(TileCover tileCover);
+        public void LoadSnapshot(TileCover tileCover);
         IEnumerator Initialize();
         IEnumerator LoadTileCoverToMemory(TileCover tileCover);
         void OnDestroy();
         Dictionary<UnwrappedTileId, UnityMapTile> ActiveTiles { get; }
         bool TryGetLayerModule<T>(Type type, out T layerModule) where T : ILayerModule;
+
+        event Action<UnityMapTile> TileLoaded;
+        event Action<UnityMapTile> TileUnloading;
     }
 }

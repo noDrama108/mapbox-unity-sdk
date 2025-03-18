@@ -73,14 +73,7 @@ namespace Mapbox.BaseModule.Map
                 {
                     if (unityMapTile.IsTemporary)
                     {
-                        var tileFinished = true;
-                        foreach (var module in LayerModules)
-                        {
-                            var moduleFinished = module.LoadInstant(unityMapTile);
-                            tileFinished &= moduleFinished;
-                            if (!moduleFinished) break;
-                        }
-                        if (tileFinished) unityMapTile.IsTemporary = false;
+                        FinalizeTempTile(unityMapTile);
                     }
                     
                     ShowTile(unityMapTile);
@@ -109,9 +102,10 @@ namespace Mapbox.BaseModule.Map
             
             foreach (var tileId in _toRemove)
             {
-                if (ActiveTiles.ContainsKey(tileId))
+                if (ActiveTiles.TryGetValue(tileId, out var tile))
                 {
-                    PoolTile(ActiveTiles[tileId]);
+                    TileUnloading(tile);
+                    PoolTile(tile);
                 }
                 else
                 {
@@ -122,6 +116,30 @@ namespace Mapbox.BaseModule.Map
             foreach (var visualization in LayerModules)
             {
                 visualization.RetainTiles(_retainedTiles, ActiveTiles);
+            }
+        }
+
+        /// <summary>
+        /// Minimal function that'll try to load view with whatever data is available.
+        /// It will not unload any tiles, it will not trigger any data fetching.
+        /// It'll only organize and use data already in memory.
+        /// If resources required for the requested tile aren't ready, it'll use whatever available
+        /// and create a "temporary tile".
+        /// </summary>
+        /// <param name="tileCover"></param>
+        public void LoadSnapshot(TileCover tileCover)
+        {
+            foreach (var tileId in tileCover.Tiles)
+            {
+                if (CreateTileInstant(tileId, out var unityMapTile))
+                {
+                    
+                }
+                else
+                {
+                    CreateTempTile(tileId, out unityMapTile);
+                }
+                ShowTile(unityMapTile);
             }
         }
 
@@ -210,13 +228,9 @@ namespace Mapbox.BaseModule.Map
 
         protected void CreateTempTile(UnwrappedTileId tileId, out UnityMapTile tile)
         {
-            var rectd = Conversions.TileBoundsInUnitySpace(tileId, _mapInformation.CenterMercator, _mapInformation.Scale);
-            tile = null;
-            tile = _tileCreator.GetTile();
-            tile.transform.position = new Vector3((float) rectd.Center.x, 0, (float) rectd.Center.y);
-            tile.transform.localScale = Vector3.one * (float) rectd.Size.x;
-            tile.Initialize(tileId, (float) rectd.Size.x * _mapInformation.Scale);
-            
+            //we need to do positioning and scaling before mesh gen for now
+            GetMapTile(tileId, out tile);
+
             foreach (var module in LayerModules)
             {
                 module.LoadTempTile(tile);
@@ -228,30 +242,45 @@ namespace Mapbox.BaseModule.Map
         
         protected bool CreateTileInstant(UnwrappedTileId tileId, out UnityMapTile tile)
         {
+            //we need to do positioning and scaling before mesh gen for now
+            GetMapTile(tileId, out tile);
+
+            var result = FinalizeTempTile(tile);
+            
+            //couldn't create the tile
+            if (!result) PoolTile(tile);
+
+            return result;
+        }
+
+        protected void GetMapTile(UnwrappedTileId tileId, out UnityMapTile tile)
+        {
             var rectd = Conversions.TileBoundsInUnitySpace(tileId, _mapInformation.CenterMercator, _mapInformation.Scale);
             tile = null;
             tile = _tileCreator.GetTile();
             tile.transform.position = new Vector3((float) rectd.Center.x, 0, (float) rectd.Center.y);
             tile.transform.localScale = Vector3.one * (float) rectd.Size.x;
-            tile.Initialize(tileId, (float) rectd.Size.x * _mapInformation.Scale); 
-            
-            var loaded = true;
+            tile.Initialize(tileId, (float) rectd.Size.x * _mapInformation.Scale);
+        }
+        
+        protected bool FinalizeTempTile(UnityMapTile unityMapTile)
+        {
+            var tileFinished = true;
             foreach (var module in LayerModules)
             {
-                var moduleFinished = module.LoadInstant(tile);
-                loaded &= moduleFinished;
+                var moduleFinished = module.LoadInstant(unityMapTile);
+                tileFinished &= moduleFinished;
+                if (!moduleFinished) break;
             }
 
-            if (!loaded)
+            if (tileFinished)
             {
-                PoolTile(tile);
-                return false;
+                unityMapTile.IsTemporary = false;
+                ActiveTiles.TryAdd(unityMapTile.UnwrappedTileId, unityMapTile);
+                TileLoaded(unityMapTile);
             }
-            
-            tile.IsTemporary = false;
-            ActiveTiles.Add(tileId, tile);
 
-            return true;
+            return tileFinished;
         }
 
         protected void RepositionAllTiles(IMapInformation mapInformation)
@@ -266,5 +295,8 @@ namespace Mapbox.BaseModule.Map
                 module.UpdatePositioning(mapInformation);
             }
         }
+        
+        public event Action<UnityMapTile> TileLoaded = (tile) => { };
+        public event Action<UnityMapTile> TileUnloading = (tile) => { };
     }
 }
