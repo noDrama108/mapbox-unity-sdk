@@ -32,10 +32,7 @@ namespace Mapbox.Example.Scripts.LocationBehaviours
             _mapCore.Initialized += (map) =>
             {
                 _map = map;
-                map.OnFirstViewCompleted += () =>
-                {
-                    _locationProvider.DefaultLocationProvider.OnLocationUpdated += OnDefaultLocationProviderOnOnLocationUpdated;
-                };
+                _locationProvider.DefaultLocationProvider.OnLocationUpdated += OnDefaultLocationProviderOnOnLocationUpdated;
             };
         }
 
