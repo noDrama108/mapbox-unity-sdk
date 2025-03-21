@@ -10,6 +10,9 @@ using UnityEngine;
 
 namespace Mapbox.BaseModule.Map
 {
+    /// <summary>
+    /// The primary object responsible for preparing the data and generating the visuals of the map.
+    /// </summary>
     [Serializable]
     public class MapboxMapVisualizer : IMapVisualizer
     {
@@ -45,6 +48,13 @@ namespace Mapbox.BaseModule.Map
             yield return LayerModules.Select(x => x.Initialize()).WaitForAll();
         }
         
+        /// <summary>
+        /// Prepare data and visuals for given tile cover. It loads the data to memory, generates vector feature visuals
+        /// and prepare it all to ensure following tile requests will be finished in single frame.
+        /// So this method doesn't create the tile, it prepares everything inside a tile.
+        /// </summary>
+        /// <param name="tileCover"></param>
+        /// <returns></returns>
         public virtual IEnumerator LoadTileCoverToMemory(TileCover tileCover)
         {
             var hashsetTiles = new HashSet<CanonicalTileId>(tileCover.Tiles.Select(x => x.Canonical));
@@ -52,6 +62,11 @@ namespace Mapbox.BaseModule.Map
             yield return coroutines.WaitForAll();
         }
       
+        /// <summary>
+        /// Create the map in given tileCover area. Makes decision to load or unload tiles and handle temporary filler
+        /// tiles until actual tiles are loaded.
+        /// </summary>
+        /// <param name="tileCover"></param>
         public virtual void Load(TileCover tileCover)
         {
             _tileCreatedThisFrame = 0;
@@ -102,6 +117,7 @@ namespace Mapbox.BaseModule.Map
             
             foreach (var tileId in _toRemove)
             {
+                //this tryget is unnecessary, just get it. it cannot not be there.
                 if (ActiveTiles.TryGetValue(tileId, out var tile))
                 {
                     TileUnloading(tile);
@@ -151,6 +167,15 @@ namespace Mapbox.BaseModule.Map
             }
         }
 
+        /// <summary>
+        /// Find a LayerModule by given type. LayerModules are kept as ILayerModule and this method queries by concrete
+        /// so it might cause unexpected issues if there are multiple layer modules of same type. This method will simply
+        /// return the first one found.
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="module"></param>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
         public bool TryGetLayerModule<T>(Type type, out T module) where T : ILayerModule
         {
             module = (T)LayerModules.FirstOrDefault(x => x.GetType() == type);
@@ -283,6 +308,11 @@ namespace Mapbox.BaseModule.Map
             return tileFinished;
         }
 
+        /// <summary>
+        /// Triggers the repositioning for all tiles per module. This is necessary for vector module to move feature visuals
+        /// if (and only if) map settings are such that camera is static and map&tiles are moving (slippy map).
+        /// </summary>
+        /// <param name="mapInformation"></param>
         protected void RepositionAllTiles(IMapInformation mapInformation)
         {
             foreach (var tilePair in ActiveTiles)
@@ -296,7 +326,15 @@ namespace Mapbox.BaseModule.Map
             }
         }
         
+        /// <summary>
+        /// Map tile finished loading with targeted detail level data. This tile isn't temporary anymore, it'll be in
+        /// ActiveTiles list.
+        /// </summary>
         public event Action<UnityMapTile> TileLoaded = (tile) => { };
+        /// <summary>
+        /// Map tile unloading event fires for tiles that are still in active tiles list but not in the latest tileCover.
+        /// UnityMapTile object attached to event will be pooled after the event call.
+        /// </summary>
         public event Action<UnityMapTile> TileUnloading = (tile) => { };
     }
 }
