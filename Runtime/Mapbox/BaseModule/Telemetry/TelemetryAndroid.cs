@@ -114,8 +114,12 @@ namespace Mapbox.BaseModule.Telemetry
 					return;
 				}
 
-				var skuid = new AndroidJavaObject(_mapboxUserSkuIdentifierClassName);
-				using (AndroidJavaObject turnstileEvent = new AndroidJavaObject(_mapboxTurnstileEventClassName, skuid.GetStatic<AndroidJavaObject>(_unityMausEnumName)))
+				var skuid = new AndroidJavaClass(_mapboxUserSkuIdentifierClassName);
+				AndroidJavaObject valueArray = skuid.CallStatic<AndroidJavaObject>("values");
+				var array = AndroidJNIHelper.ConvertFromJNIArray<AndroidJavaObject[]>(valueArray.GetRawObject());
+				var unityEnum = array[7];
+				
+				using (AndroidJavaObject turnstileEvent = new AndroidJavaObject(_mapboxTurnstileEventClassName, unityEnum))
 				{
 					_mapboxEventService.Call(_sendTurnstileEventMethodName, turnstileEvent, null);
 				}
@@ -126,9 +130,14 @@ namespace Mapbox.BaseModule.Telemetry
 		{
 			var billingServiceFactory = new AndroidJavaClass(_mapboxBillingServiceFactoryClassName);
 			var billingService = billingServiceFactory.CallStatic<AndroidJavaObject>(_mapboxBillingFactoryGetMethodName);
+
+			var skuid = new AndroidJavaClass(_mapboxUserSkuIdentifierClassName);
+			AndroidJavaObject valueArray = skuid.CallStatic<AndroidJavaObject>("values");
+			var array = AndroidJNIHelper.ConvertFromJNIArray<AndroidJavaObject[]>(valueArray.GetRawObject());
+			var unityEnum = array[7];
+				
 			
-			var skuid = new AndroidJavaObject(_mapboxUserSkuIdentifierClassName);
-			billingService.Call(_mapboxSdkEventMethodName, _sdkInformation, skuid.GetStatic<AndroidJavaObject>(_unityMausEnumName), null);
+			billingService.Call(_mapboxSdkEventMethodName, _sdkInformation, unityEnum, null);
 		}
 
 		public void SetLocationCollectionState(bool enable)
