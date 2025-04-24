@@ -122,7 +122,7 @@ namespace Mapbox.BaseModuleTests
             SaveBlobTest();
             VectorData resultData = null;
             bool isDone = false;
-            _cacheManager.GetTileInfoAsync<VectorData>(_testTileId, _testTilesetName, data =>
+            _cacheManager.GetTileInfoAsync<VectorData>(_testTileId, _testTilesetName, (task, data) =>
             {
                 resultData = data;
                 isDone = true;
@@ -151,7 +151,7 @@ namespace Mapbox.BaseModuleTests
             Assert.IsNull(resultData.ETag);
             Assert.IsNull(resultData.ExpirationDate);
             isDone = false;
-            _cacheManager.ReadEtagExpiration(resultData, () =>
+            _cacheManager.ReadEtagExpiration(resultData, (task) =>
             {
                 isDone = true;
             });
@@ -168,7 +168,7 @@ namespace Mapbox.BaseModuleTests
             
             RasterData resultData = null;
             bool isDone = false;
-            _cacheManager.GetTileInfoAsync<RasterData>(_testTileId, _testTilesetName, data =>
+            _cacheManager.GetTileInfoAsync<RasterData>(_testTileId, _testTilesetName, (task, data) =>
             {
                 isDone = true;
                 resultData = data;
@@ -181,7 +181,7 @@ namespace Mapbox.BaseModuleTests
             _cacheManager.UpdateExpiration(_testTileId, _testTilesetName, _testExpirationDate);
             
             isDone = false;
-            _cacheManager.GetTileInfoAsync<RasterData>(_testTileId, _testTilesetName, data =>
+            _cacheManager.GetTileInfoAsync<RasterData>(_testTileId, _testTilesetName, (task, data) =>
             {
                 isDone = true;
                 resultData = data;

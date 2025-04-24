@@ -11,7 +11,7 @@ using UnityEngine;
 
 namespace Mapbox.UnityMapService.DataSources
 {
-    public abstract class UnitySource<T> : Source<T>, IMapboxCacheManager
+    public abstract class UnitySource<T> : Source<T>
     {
         public override bool IsReady()
         {
@@ -26,7 +26,7 @@ namespace Mapbox.UnityMapService.DataSources
         private readonly DataFetchingManager _dataFetchingManager;
         private readonly MapboxCacheManager _cacheManager;
         private IAsyncRequest _tileJsonRequest;
-        private Dictionary<Tile, FetchInfo> _activeRequests;
+        private Dictionary<CanonicalTileId, FetchInfo> _activeRequests;
         protected Dictionary<CanonicalTileId, List<TaskWrapper>> _activeTasks;
 
         protected UnitySource(DataFetchingManager dataFetchingManager, MapboxCacheManager cacheManager, string tilesetId)
@@ -35,17 +35,9 @@ namespace Mapbox.UnityMapService.DataSources
             _tilesetId = tilesetId;
             _dataFetchingManager = dataFetchingManager;
             _cacheManager = cacheManager;
-            _activeRequests = new Dictionary<Tile, FetchInfo>();
-            _dataFetchingManager.FetchFinished += info =>
-            {
-                _activeRequests.Remove(info.Tile);
-            };
-            _dataFetchingManager.FetchCancelled += info =>
-            {
-                _activeRequests.Remove(info.Tile);
-            };
+            _activeRequests = new Dictionary<CanonicalTileId, FetchInfo>();
         }
-
+        
         public override IEnumerator Initialize()
         {
             while (!_isTileJsonReady)
@@ -75,8 +67,15 @@ namespace Mapbox.UnityMapService.DataSources
 
         protected void WebRequestData(Tile tile, Action<DataFetchingResult> callback)
         {
-            var fetchInfo = new FetchInfo(tile, callback);
-            _activeRequests.Add(tile, fetchInfo);
+            if (_activeRequests.ContainsKey(tile.Id))
+                return;
+            
+            var fetchInfo = new FetchInfo(tile, (result) =>
+            {
+                _activeRequests.Remove(tile.Id);
+                callback(result);
+            });
+            _activeRequests.Add(tile.Id, fetchInfo);
             _dataFetchingManager.EnqueueForFetching(fetchInfo);
         }
 		
@@ -121,17 +120,23 @@ namespace Mapbox.UnityMapService.DataSources
         
         public TaskWrapper GetTileInfoAsync<T1>(CanonicalTileId tileId, string tilesetid, Action<T1> callback, int priority = 1) where T1 : MapboxTileData, new()
         { 
-            var task = _cacheManager.GetTileInfoAsync<T1>(tileId, tilesetid, callback, priority);
-            if(!_activeTasks.ContainsKey(tileId)) _activeTasks.Add(tileId, new List<TaskWrapper>());
-            _activeTasks[tileId].Add(task);
+            var task = _cacheManager.GetTileInfoAsync<T1>(tileId, tilesetid, (resultTask, response) =>
+            {
+                CompleteTask(resultTask);
+                callback(response);
+            }, priority);
+            TrackTask(task);
             return task;
         }
         
         public TaskWrapper ReadEtagExpiration<T1>(T1 data, Action callback, int priority = 1) where T1 : MapboxTileData, new()
         {
-            var task = _cacheManager.ReadEtagExpiration(data, callback, priority);
-            if(!_activeTasks.ContainsKey(data.TileId)) _activeTasks.Add(data.TileId, new List<TaskWrapper>());
-            _activeTasks[data.TileId].Add(task);
+            var task = _cacheManager.ReadEtagExpiration(data, (resultTask) =>
+            {
+                CompleteTask(resultTask);
+                callback();
+            }, priority);
+            TrackTask(task);
             return task;
         }
 
@@ -148,6 +153,25 @@ namespace Mapbox.UnityMapService.DataSources
         public override bool IsZinSupportedRange(int z)
         {
             return z >= _sourceZoomRange[0] && z <= _sourceZoomRange[1];
+        }
+        
+        private void TrackTask(TaskWrapper task)
+        {
+            if (!_activeTasks.ContainsKey(task.TileId))
+            {
+                _activeTasks.Add(task.TileId, new List<TaskWrapper>());
+            }
+            _activeTasks[task.TileId].Add(task);
+        }
+        
+        private void CompleteTask(TaskWrapper task)
+        {
+            if (_activeTasks.TryGetValue(task.TileId, out List<TaskWrapper> tasks))
+            {
+                tasks.Remove(task);
+                if (tasks.Count == 0)
+                    _activeTasks.Remove(task.TileId);
+            }
         }
     }
 }
