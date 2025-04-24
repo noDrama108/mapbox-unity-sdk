@@ -100,7 +100,7 @@ namespace Mapbox.VectorModule.MeshGeneration
         
         public void OnDestroy()
         {
-            _objectPool.Clear();
+            _objectPool?.Clear();
         }
         
         private VectorEntity VectorEntityGenerator(Transform layerRootObject)
