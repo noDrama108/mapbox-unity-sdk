@@ -252,10 +252,11 @@ namespace Mapbox.UnityMapService.DataSources
             if (cacheItem.ExpirationDate != null && 
                 DateTime.Compare(cacheItem.ExpirationDate.Value, DateTime.Now) < 0)
             {
+                TileExpired(cacheItem.TilesetId, cacheItem.TileId);
                 var dataTile = CreateTile(cacheItem.TileId, cacheItem.TilesetId);
                 dataTile.ETag = cacheItem.ETag;
                 _waitingList.Add(cacheItem.TileId, dataTile);
-                WebRequestData(dataTile, (fetchingResult) =>
+                WebRequestUpdate(dataTile, (fetchingResult) =>
                 {
                     _waitingList.Remove(cacheItem.TileId);
                     if (dataTile.CurrentTileState != TileState.Canceled)
@@ -271,6 +272,7 @@ namespace Mapbox.UnityMapService.DataSources
                             //Debug.Log(string.Format("{0} - {1} : expired but not changed, just update meta?", cacheItem.TileId, cacheItem.TilesetId));
                             UpdateExpiration(dataTile.Id, dataTile.TilesetId, dataTile.ExpirationDate);
                         }
+                        TileUpdated(dataTile.TilesetId, dataTile.Id);
                     }
                 });
                 //Debug.Log(cacheItem.TileId + " tile needs an update");

@@ -16,19 +16,19 @@ namespace Mapbox.BaseModule.Data.Platform.Cache
         void SaveBlob(MapboxTileData vectorCacheItem, bool forceInsert);
         void SaveImage(RasterData textureCacheItem, bool forceInsert);
         void GetImageAsync<T>(CanonicalTileId tileId, string tilesetId, bool isTextureNonreadable, Action<T> callback) where T : RasterData, new();
-        DataTaskWrapper<T> CreateGetTileInfoTask<T>(CanonicalTileId tileId, string tilesetid , int priority = 1) where T : MapboxTileData, new();
-        DataTaskWrapper<T> CreateReadEtagExpirationTask<T>(T data, int priority = 1) where T : MapboxTileData, new();
+        DataTaskWrapper<T> CreateGetTileInfoTask<T>(CanonicalTileId tileId, string tilesetid , T data = null) where T : MapboxTileData, new();
+        //DataTaskWrapper<T> CreateReadEtagExpirationTask<T>(T data, int priority = 1) where T : MapboxTileData, new();
         void UpdateExpiration(CanonicalTileId tileId, string tilesetId, DateTime date);
         
-        void AddTask(TaskWrapper task);
+        void AddTask(TaskWrapper task, int priority = 1);
     }
 
     public class MapboxCacheManager : IMapboxCacheManager
     {
-        private IMemoryCache _memoryCache;
-        private IFileCache _textureFileCache;
-        private ISqliteCache _sqLiteCache;
-        private TaskManager _taskManager;
+        protected IMemoryCache _memoryCache;
+        protected IFileCache _textureFileCache;
+        protected ISqliteCache _sqLiteCache;
+        protected TaskManager _taskManager;
 
         public MapboxCacheManager(UnityContext unityContext, MemoryCache memoryCache, FileCache fileCache = null, ISqliteCache cache = null)
         {
@@ -110,34 +110,23 @@ namespace Mapbox.BaseModule.Data.Platform.Cache
             }
         }
 
-        public DataTaskWrapper<T> CreateGetTileInfoTask<T>(CanonicalTileId tileId, string tilesetid, int priority = 1) where T : MapboxTileData, new()
+        public DataTaskWrapper<T> CreateGetTileInfoTask<T>(CanonicalTileId tileId, string tilesetid, T data = null)
+            where T : MapboxTileData, new()
         {
             if (_sqLiteCache != null)
             {
                 var task = new DataTaskWrapper<T>();
-
                 task.TileId = tileId;
-                task.DataAction = () => { return _sqLiteCache.Get<T>(tilesetid, tileId); };
+                task.DataAction = () => { return _sqLiteCache.Get<T>(tilesetid, tileId, data); };
                 return task;
             }
-            else
-            {
-                return null;
-            }
-        }
 
-        public DataTaskWrapper<T> CreateReadEtagExpirationTask<T>(T data, int priority = 4) where T : MapboxTileData, new()
-        {
-            var task = new DataTaskWrapper<T>();
-            
-            task.TileId = data.TileId;
-            task.DataAction = () => { return _sqLiteCache.Get<T>(data.TilesetId, data.TileId, data); };
-            return task;
+            return null;
         }
-
-        public void AddTask(TaskWrapper taskWrapper)
+        
+        public void AddTask(TaskWrapper taskWrapper, int priority = 1)
         {
-            _taskManager.AddTask(taskWrapper);
+            _taskManager.AddTask(taskWrapper, priority);
         }
 
         public void UpdateExpiration(CanonicalTileId tileId, string tilesetId, DateTime date)
@@ -219,13 +208,6 @@ namespace Mapbox.BaseModule.Data.Platform.Cache
             {
                 Debug.Log("Mapbox cache cleared");
             }
-        }
-    }
-
-    public class LoggingCacheManager : MapboxCacheManager
-    {
-        public LoggingCacheManager(UnityContext unityContext, MemoryCache memoryCache, FileCache fileCache = null, SQLiteCache.SqliteCache cache = null) : base(unityContext, memoryCache, fileCache, cache)
-        {
         }
     }
 }

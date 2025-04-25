@@ -41,6 +41,7 @@ namespace Mapbox.Example.Scripts.Map
                 yield return null;
             }
             gameObject.SetActive(false);
+            _map.LoadViewCompleted -= OnMapFirstViewCompleted;
         }
 
         private void OnDestroy()

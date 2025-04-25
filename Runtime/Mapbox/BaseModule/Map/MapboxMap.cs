@@ -77,18 +77,13 @@ namespace Mapbox.BaseModule.Map
         /// - Suspends per-frame map updates during the loading phase and resumes them 
         ///   once loading is complete.
         /// </remarks>
-        public void LoadMapView(Action callback)
+        public void LoadMapView(Action callback = null)
         {
-            Status = InitializationStatus.LoadingView;
-            LoadViewStarting();
-            Runnable.Instance.StartCoroutine(LoadMapViewCoroutine(() =>
+            Runnable.Instance.StartCoroutine(LoadMapViewCoroutine(MapInformation.LatitudeLongitude, () =>
             {
                 MapService.TileCover(MapInformation, TileCover);
                 MapVisualizer.LoadSnapshot(TileCover);
-                
                 callback?.Invoke();
-                LoadViewCompleted();
-                Status = InitializationStatus.ReadyForUpdates;
             }));
         }
         
@@ -106,22 +101,21 @@ namespace Mapbox.BaseModule.Map
         /// - Suspends per-frame map updates during the loading phase and resumes them 
         ///   once loading is complete.
         /// </remarks>
-        public void LoadMapView(Action callback, LatitudeLongitude targetLocation)
+        public void LoadMapView(LatitudeLongitude targetLocation, Action callback = null)
         {
-            Status = InitializationStatus.LoadingView;
-            LoadViewStarting();
-            MapInformation.SetInformation(targetLocation);
-            Runnable.Instance.StartCoroutine(LoadMapViewCoroutine(() =>
+            Runnable.Instance.StartCoroutine(LoadMapViewCoroutine(targetLocation, () =>
             {
                 MapService.TileCover(MapInformation, TileCover);
                 MapVisualizer.LoadSnapshot(TileCover);
-                
                 callback?.Invoke();
-                LoadViewCompleted();
-                Status = InitializationStatus.ReadyForUpdates;
             }));
         }
-  
+
+        public IEnumerator LoadMapViewCoroutine(Action callback = null)
+        {
+            yield return LoadMapViewCoroutine(MapInformation.LatitudeLongitude, callback);
+        }
+
         /// <summary>
         /// Provides a controlled method for jumping to specific locations on the map.
         /// Unlike standard frame-by-frame map updates, this method ensures precise 
@@ -139,12 +133,18 @@ namespace Mapbox.BaseModule.Map
         /// - Does not pause per-frame updates.
         /// - Does not trigger start and finished events.
         /// </remarks>
-        public IEnumerator LoadMapViewCoroutine(Action callback)
+        public IEnumerator LoadMapViewCoroutine(LatitudeLongitude targetLocation, Action callback = null)
         {
-            var tileCover = new TileCover();
-            MapService.TileCover(MapInformation, tileCover);
-            yield return MapVisualizer.LoadTileCoverToMemory(tileCover);
-            callback();
+            Status = InitializationStatus.LoadingView;
+            LoadViewStarting();
+            MapInformation.SetInformation(targetLocation);
+            
+            MapService.TileCover(MapInformation, TileCover);
+            yield return MapVisualizer.LoadTileCoverToMemory(TileCover);
+            
+            LoadViewCompleted();
+            Status = InitializationStatus.ReadyForUpdates;
+            callback?.Invoke();
         }
 
         /// <summary>

@@ -8,6 +8,7 @@ namespace Mapbox.BaseModule.Data.DataFetchers
         public Action<DataFetchingResult> Callback;
         public Tile Tile;
         public float QueueTime;
+        public bool IsUpdate = false;
 
         public FetchInfo(Tile tile, Action<DataFetchingResult> callback = null)
         {

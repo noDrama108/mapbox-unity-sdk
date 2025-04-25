@@ -313,9 +313,10 @@ namespace Mapbox.UnityMapService.DataSources
         {
             if (data.ExpirationDate == null || DateTime.Compare((DateTime)data.ExpirationDate, DateTime.Now) < 0)
             {
+                TileExpired(data.TilesetId, data.TileId);
                 var dataTile = CreateTile(data.TileId, data.TilesetId);
                 dataTile.ETag = data.ETag;
-                WebRequestData(dataTile, (tile) =>
+                WebRequestUpdate(dataTile, (tile) =>
                 {
                     if (dataTile.CurrentTileState != TileState.Canceled)
                     {
@@ -330,6 +331,8 @@ namespace Mapbox.UnityMapService.DataSources
                             //Debug.Log("expired but not changed, just update meta?");
                             UpdateExpiration(dataTile.Id, dataTile.TilesetId, dataTile.ExpirationDate);
                         }
+
+                        TileUpdated(data.TilesetId, data.TileId);
                     }
                 });
                 //Debug.Log("tile needs an update");

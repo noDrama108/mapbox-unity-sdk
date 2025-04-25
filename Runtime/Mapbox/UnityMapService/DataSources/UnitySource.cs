@@ -27,7 +27,7 @@ namespace Mapbox.UnityMapService.DataSources
         private readonly MapboxCacheManager _cacheManager;
         private IAsyncRequest _tileJsonRequest;
         private Dictionary<CanonicalTileId, FetchInfo> _activeRequests;
-        protected Dictionary<CanonicalTileId, List<TaskWrapper>> _activeTasks;
+        private Dictionary<CanonicalTileId, List<TaskWrapper>> _activeTasks;
 
         protected UnitySource(DataFetchingManager dataFetchingManager, MapboxCacheManager cacheManager, string tilesetId)
         {
@@ -65,7 +65,10 @@ namespace Mapbox.UnityMapService.DataSources
             }
         }
 
-        protected void WebRequestData(Tile tile, Action<DataFetchingResult> callback)
+        protected void WebRequestData(Tile tile, Action<DataFetchingResult> callback) => RequestData(tile, callback, false);
+        protected void WebRequestUpdate(Tile tile, Action<DataFetchingResult> callback) => RequestData(tile, callback, true);
+        
+        private void RequestData(Tile tile, Action<DataFetchingResult> callback, bool isUpdate)
         {
             if (_activeRequests.ContainsKey(tile.Id))
                 return;
@@ -75,6 +78,7 @@ namespace Mapbox.UnityMapService.DataSources
                 _activeRequests.Remove(tile.Id);
                 callback(result);
             });
+            fetchInfo.IsUpdate = isUpdate;
             _activeRequests.Add(tile.Id, fetchInfo);
             _dataFetchingManager.EnqueueForFetching(fetchInfo);
         }
@@ -119,23 +123,20 @@ namespace Mapbox.UnityMapService.DataSources
         }
         
         public DataTaskWrapper<T1> GetTileInfoAsync<T1>(CanonicalTileId tileId, string tilesetid, int priority = 1) where T1 : MapboxTileData, new()
-        { 
-            var taskWrapper = _cacheManager.CreateGetTileInfoTask<T1>(tileId, tilesetid, priority);
+            => GetTileData<T1>(tileId, tilesetid, null, priority);
+        
+        public DataTaskWrapper<T1> ReadEtagExpiration<T1>(T1 data, int priority = 1) where T1 : MapboxTileData, new()
+            => GetTileData<T1>(data.TileId, data.TilesetId, data, priority);
+
+        private DataTaskWrapper<T1> GetTileData<T1>(CanonicalTileId tileId, string tilesetid, T1 data = null, int priority = 1) where T1 : MapboxTileData, new()
+        {
+            var taskWrapper = _cacheManager.CreateGetTileInfoTask<T1>(tileId, tilesetid);
             taskWrapper.DataCompleted += ((resultTask, result) =>  CompleteTask(taskWrapper));
             TrackTask(taskWrapper);
-            _cacheManager.AddTask(taskWrapper);
+            _cacheManager.AddTask(taskWrapper, priority);
             return taskWrapper;
         }
         
-        public DataTaskWrapper<T1> ReadEtagExpiration<T1>(T1 data, int priority = 1) where T1 : MapboxTileData, new()
-        {
-            var taskWrapper = _cacheManager.CreateReadEtagExpirationTask(data, priority);
-            taskWrapper.DataCompleted += ((resultTask, result) => CompleteTask(taskWrapper));
-            TrackTask(taskWrapper);
-            _cacheManager.AddTask(taskWrapper);
-            return taskWrapper;
-        }
-
         public void UpdateExpiration(CanonicalTileId tileId, string tilesetId, DateTime date)
         {
             _cacheManager.UpdateExpiration(tileId, tilesetId, date);
@@ -169,5 +170,8 @@ namespace Mapbox.UnityMapService.DataSources
                     _activeTasks.Remove(task.TileId);
             }
         }
+        
+        public Action<string, CanonicalTileId> TileExpired = (tilesetid, tileId) => { };
+        public Action<string, CanonicalTileId> TileUpdated = (tilesetid, tileId) => { };
     }
 }

@@ -497,7 +497,7 @@ CONSTRAINT tileAssignmentConstraint UNIQUE (tileId, mapId)
 				}, 4);
 		}
 		
-		private int UpdateTile(tiles newTile)
+		public int UpdateTile(tiles newTile)
 		{
 			var query = "UPDATE tiles " +
 			            "SET tile_data = ?1, tile_path = ?2, timestamp = ?3, expirationDate = ?4, etag = ?5" +

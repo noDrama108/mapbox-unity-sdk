@@ -10,6 +10,7 @@ namespace Mapbox.MapDebug.Scripts.Logging
 {
     public class LoggingDataFetchingManager : DataFetchingManager, ILogWriter
     {
+        public int FetchQueueCount => _fetchQueue.Count;
         public bool EnableLogging = false;
         public int AddedCount;
         public int InitializedCount;

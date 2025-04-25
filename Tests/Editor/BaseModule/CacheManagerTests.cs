@@ -153,7 +153,7 @@ namespace Mapbox.BaseModuleTests
             Assert.IsNull(resultData.ETag);
             Assert.IsNull(resultData.ExpirationDate);
             isDone = false;
-            var wrapper = _cacheManager.CreateReadEtagExpirationTask(resultData);
+            var wrapper = _cacheManager.CreateGetTileInfoTask(resultData.TileId, resultData.TilesetId, resultData);
             wrapper.DataCompleted += (task, data) => isDone = true;
             _cacheManager.AddTask(wrapper);
             while (!isDone) yield return null;
