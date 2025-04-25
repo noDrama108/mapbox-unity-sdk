@@ -131,9 +131,12 @@ namespace Mapbox.UnityMapService.DataSources
         private DataTaskWrapper<T1> GetTileData<T1>(CanonicalTileId tileId, string tilesetid, T1 data = null, int priority = 1) where T1 : MapboxTileData, new()
         {
             var taskWrapper = _cacheManager.CreateGetTileInfoTask<T1>(tileId, tilesetid);
-            taskWrapper.DataCompleted += ((resultTask, result) =>  CompleteTask(taskWrapper));
-            TrackTask(taskWrapper);
-            _cacheManager.AddTask(taskWrapper, priority);
+            if (taskWrapper != null)
+            {
+                taskWrapper.DataCompleted += ((resultTask, result) => CompleteTask(taskWrapper));
+                TrackTask(taskWrapper);
+                _cacheManager.AddTask(taskWrapper, priority);
+            }
             return taskWrapper;
         }
         

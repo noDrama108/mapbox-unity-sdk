@@ -31,7 +31,7 @@ namespace Mapbox.BaseModule.Data.DataFetchers
 		/// </summary>
 		public event Action<FetchInfo> FetchCancelled = (t)=> {};
 		
-		protected const float _requestDelay = 0.2f;
+		protected float _requestDelay = 0.2f;
 		protected IFileSource _fileSource;
 		protected Queue<FetchInfo> _fetchQueue;
 		protected HashSet<FetchInfo> _globalActiveRequests;

@@ -168,64 +168,49 @@ namespace Mapbox.UnityMapService.DataSources
                 callback?.Invoke(null);
                 return;
             }
-            _waitingList.Add(requestedDataTileId, null);
             
             var dataTile = CreateTile(requestedDataTileId, _tilesetId);
             _waitingList[requestedDataTileId] = dataTile;
             var dataTask = GetTileInfoAsync<T>(requestedDataTileId, _tilesetId, 0);
-            dataTask.DataCompleted += (task, cacheItem) =>
+            if (dataTask != null) // can be null if sqlite cache isn't available
             {
-                if (dataTile.CurrentTileState == TileState.Canceled) return;
-                if (cacheItem != null)
+                dataTask.DataCompleted += (task, cacheItem) =>
                 {
-                    VectorReceivedFromSqlite(cacheItem);
-                    // TextureReceivedFromFile(cacheItem);
-                    CheckExpiration(cacheItem);
-                    if (_waitingList.ContainsKey(cacheItem.TileId))
-                        _waitingList.Remove(cacheItem.TileId);
-                    callback?.Invoke(cacheItem);
-                }
-                else
-                {
-                    WebRequestData(dataTile, (fetchingResult) =>
+                    _waitingList.Remove(requestedDataTileId);
+                    if (dataTile.CurrentTileState == TileState.Canceled)
                     {
-                        var resultDataItem = VectorReceivedFromWeb(dataTile);
-                        if (_waitingList.ContainsKey(dataTile.Id))
-                            _waitingList.Remove(dataTile.Id);
-                        callback?.Invoke(resultDataItem);
-                    });
-                }
-            };
-        }
-
-        private void VectorReceivedFromSqlite(T vectorCacheItemFromSqlite)
-        {
-            //TODO ADD expiration date check if tile is from sqlite
-            //TODO REREQUEST if data has expired if tile is from sqlite
-            //TODO ADD to memory cache
-            // var tile = (Map.VectorTile) vectorCacheItemFromSqlite.Tile;
-            // if (tile.CurrentTileState == TileState.Canceled)
-            //     return;
-            
-            //CheckAndRequestExpiredTile(vectorCacheItemFromSqlite, tile);
-
-            // tile.AddLog(string.Format("{0} - {1}", Time.unscaledTime, " VectorReceivedFromSqlite"));
-            // var cacheItem = CreateCacheItem(tile);
-            
-            if (_waitingList.ContainsKey(vectorCacheItemFromSqlite.TileId))
-            {
-                _waitingList.Remove(vectorCacheItemFromSqlite.TileId);
+                        callback?.Invoke(null);
+                        return;
+                    }
+                    else if (cacheItem != null)
+                    {
+                        _memoryCache.Add(cacheItem);
+                        CheckExpiration(cacheItem);
+                        if (_waitingList.ContainsKey(cacheItem.TileId))
+                            _waitingList.Remove(cacheItem.TileId);
+                        callback?.Invoke(cacheItem);
+                    }
+                    else
+                    {
+                        CreateWebRequest(callback, dataTile);
+                    }
+                };
             }
             else
             {
-                //this can mean bunch of things (like cancellation)
-                //but one case is; data we read from filecache was expired
-                //since we received it first time, it's not in waiting list anymore
-                //then server call for updating the data hits here and it wasn't expected at all
-                Debug.Log("tile fetched but it isn't expected anymore?");
+                CreateWebRequest(callback, dataTile);
             }
+        }
 
-            _memoryCache.Add(vectorCacheItemFromSqlite);
+        private void CreateWebRequest(Action<T> callback, ByteArrayTile dataTile)
+        {
+            WebRequestData(dataTile, (fetchingResult) =>
+            {
+                var resultDataItem = VectorReceivedFromWeb(dataTile);
+                if (_waitingList.ContainsKey(dataTile.Id))
+                    _waitingList.Remove(dataTile.Id);
+                callback?.Invoke(resultDataItem);
+            });
         }
 
         private T VectorReceivedFromWeb(ByteArrayTile tile)

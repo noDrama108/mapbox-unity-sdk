@@ -10,6 +10,7 @@ namespace Mapbox.MapDebug.Scripts.Logging
 {
     public class LoggingDataFetchingManager : DataFetchingManager, ILogWriter
     {
+        public Queue<FetchInfo> GetFetchingQueue() => _fetchQueue;
         public int FetchQueueCount => _fetchQueue.Count;
         public bool EnableLogging = false;
         public int AddedCount;
@@ -57,6 +58,8 @@ namespace Mapbox.MapDebug.Scripts.Logging
             return base.GetTileJSON(timeout);
         }
 
+        public void SetDelayTime(float f) => _requestDelay = f;
+        
         // public Queue<int> GetTileOrderQueue()
         // {
         //     return _tileOrder;

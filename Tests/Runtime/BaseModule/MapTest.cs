@@ -49,7 +49,7 @@ public class MapTest : MonoBehaviour
     //     // yield return _map.Initialize();
     // }
 
-    private void LoadMap(string latlng)
+    private void LoadMap(string latlng, bool useSqlite = true, bool useFileCache = true)
     {
         var mapInfo = new MapInformation(latlng);
         mapInfo.SetInformation(null, 16, 45, null, 1000);
@@ -61,21 +61,31 @@ public class MapTest : MonoBehaviour
         var taskManager = unityContext.TaskManager;
         _dataManager = new LoggingDataFetchingManager(mapboxContext.GetAccessToken(), mapboxContext.GetSkuToken);
 
-        var sqliteCache = new MockSqliteCache(taskManager);
-        sqliteCache.ReadySqliteDatabase();
+        SqliteCache sqliteCache = null;
+        if (useSqlite)
+        {
+            sqliteCache = new MockSqliteCache(taskManager);
+            sqliteCache.ReadySqliteDatabase();
+        }
+        
+        MockFileCache fileCache = null;
+        if (useFileCache)
+        {
+            fileCache = new MockFileCache(taskManager);
+        }
 
         _memoryCache = new MemoryCache();
         _cacheManager = new LoggingCacheManager(
             unityContext,
             _memoryCache,
-            new MockFileCache(taskManager),
+            fileCache,
             sqliteCache);
 
         var mapService = new MapUnityService(
             unityContext,
             mapboxContext,
             new UnityFixedAreaTileProvider(),
-            _cacheManager as MapboxCacheManager,
+            _cacheManager,
             _dataManager);
 
         _map = new MapboxMap(mapInfo, unityContext, mapService);
@@ -115,9 +125,32 @@ public class MapTest : MonoBehaviour
         mapVisualizer.LayerModules.Add(_vectorLayer);
     }
 
+    [TearDown]
+    public void TearDown()
+    {
+        _map.OnDestroy();
+    }
+    
     [UnityTest]
     public IEnumerator LoadMapView()
     {
+        LoadMap(_helsinkiLatitudeLongitudeString);
+        
+        var tileCover = new TileCover();
+        _map.MapService.TileCover(_map.MapInformation, tileCover);
+        yield return _map.LoadTileCoverToMemory(tileCover);
+
+        var tiles = tileCover.Tiles.Select(x => x.Canonical);
+        Assert.IsTrue(_terrainLayer.GetDataId(tiles).All(x => _terrainSource.GetInstantData(x, out var td)));
+        Assert.IsTrue(tiles.All(x => _imageSource.GetInstantData(x, out var td)));
+        Assert.IsTrue(_vectorLayer.GetDataId(tiles).All(x => _vectorSource.GetInstantData(x, out var td)));
+    }
+    
+    [UnityTest]
+    public IEnumerator LoadMapOfExpiredData()
+    {
+        //this wrongly assumes data is already available in the long term cache so it's incomplete
+        
         LoadMap(_helsinkiLatitudeLongitudeString);
         
         //expire all tiles in db
@@ -129,16 +162,9 @@ public class MapTest : MonoBehaviour
         }
         
         yield return _map.Initialize();
-        
-        Runnable.EnableRunnableInEditor();
         yield return _map.LoadMapViewCoroutine();
         yield return new WaitForSeconds(2);
         
-        //var tiles = _map.TileCover.Tiles.Select(x => x.Canonical);
-        // Assert.IsTrue(_terrainLayer.GetDataId(tiles).All(x => _terrainSource.GetInstantData(x, out var td)));
-        // Assert.IsTrue(tiles.All(x => _imageSource.GetInstantData(x, out var td)));
-        // Assert.IsTrue(_vectorLayer.GetDataId(tiles).All(x => _vectorSource.GetInstantData(x, out var td)));
-
         var updatedTileCount = 0;
         foreach (var record in _dataManager.Records)
         {
@@ -149,5 +175,66 @@ public class MapTest : MonoBehaviour
         Assert.IsTrue(_map.Status >= InitializationStatus.Initialized);
         Assert.AreNotEqual(_map.TileCover.Tiles.Count, 0);
         Assert.AreNotEqual(updatedTileCount, 0);
+    }
+    
+    [UnityTest]
+    public IEnumerator LoadMapWithoutSql()
+    {
+        LoadMap(_helsinkiLatitudeLongitudeString, false);
+        yield return _map.Initialize();
+        
+        yield return _map.LoadMapViewCoroutine();
+        _map.MapVisualizer.LoadSnapshot(_map.TileCover);
+        yield return new WaitForSeconds(2);
+        
+        Assert.IsTrue(_map.Status == InitializationStatus.ReadyForUpdates);
+        Assert.AreNotEqual(_map.TileCover.Tiles.Count, 0);
+        Assert.AreNotEqual(_map.MapVisualizer.ActiveTiles.Count, 0);
+    }
+    
+    [UnityTest]
+    public IEnumerator LoadMapWithoutFile()
+    {
+        LoadMap(_helsinkiLatitudeLongitudeString, true, false);
+        yield return _map.Initialize();
+        
+        yield return _map.LoadMapViewCoroutine();
+        _map.MapVisualizer.LoadSnapshot(_map.TileCover);
+        yield return new WaitForSeconds(2);
+        
+        Assert.IsTrue(_map.Status == InitializationStatus.ReadyForUpdates);
+        Assert.AreNotEqual(_map.TileCover.Tiles.Count, 0);
+        Assert.AreNotEqual(_map.MapVisualizer.ActiveTiles.Count, 0);
+    }
+
+    [UnityTest]
+    public IEnumerator LoadThenCancelAllRequests()
+    {
+        MapboxCacheManager.DeleteAllCache();
+        LoadMap(_helsinkiLatitudeLongitudeString);
+        yield return _map.Initialize();
+        
+        _dataManager.SetDelayTime(5);
+        Assert.IsTrue(_map.Status >= InitializationStatus.Initialized);
+        
+        Runnable.EnableRunnableInEditor();
+        Runnable.Run(_map.LoadMapViewCoroutine());
+        yield return new WaitForSeconds(1);
+
+        var finishedCount = 0;
+        var cancelledCount = 0;
+        _dataManager.FetchFinished += info => finishedCount++;
+        _dataManager.FetchCancelled += info => cancelledCount++;
+        
+        foreach (var info in _dataManager.GetFetchingQueue())
+        {
+            info.Tile.Cancel();
+        }
+
+        while (_map.Status < InitializationStatus.ReadyForUpdates) yield return null;
+        
+        Assert.IsTrue(_map.Status >= InitializationStatus.Initialized);
+        Assert.AreEqual(finishedCount, 0);
+        Assert.AreNotEqual(cancelledCount, 0);
     }
 }

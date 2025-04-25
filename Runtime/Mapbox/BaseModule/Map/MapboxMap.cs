@@ -81,8 +81,6 @@ namespace Mapbox.BaseModule.Map
         {
             Runnable.Instance.StartCoroutine(LoadMapViewCoroutine(MapInformation.LatitudeLongitude, () =>
             {
-                MapService.TileCover(MapInformation, TileCover);
-                MapVisualizer.LoadSnapshot(TileCover);
                 callback?.Invoke();
             }));
         }
@@ -105,12 +103,10 @@ namespace Mapbox.BaseModule.Map
         {
             Runnable.Instance.StartCoroutine(LoadMapViewCoroutine(targetLocation, () =>
             {
-                MapService.TileCover(MapInformation, TileCover);
-                MapVisualizer.LoadSnapshot(TileCover);
                 callback?.Invoke();
             }));
         }
-
+        
         public IEnumerator LoadMapViewCoroutine(Action callback = null)
         {
             yield return LoadMapViewCoroutine(MapInformation.LatitudeLongitude, callback);
@@ -141,12 +137,18 @@ namespace Mapbox.BaseModule.Map
             
             MapService.TileCover(MapInformation, TileCover);
             yield return MapVisualizer.LoadTileCoverToMemory(TileCover);
+            MapVisualizer.LoadSnapshot(TileCover);
             
             LoadViewCompleted();
             Status = InitializationStatus.ReadyForUpdates;
             callback?.Invoke();
         }
 
+        public IEnumerator LoadTileCoverToMemory(TileCover cover)
+        {
+            yield return MapVisualizer.LoadTileCoverToMemory(cover);
+        }
+        
         /// <summary>
         /// Change the map core settings.
         /// If the per-frame updates are enabled, new settings will be applied next frame.
