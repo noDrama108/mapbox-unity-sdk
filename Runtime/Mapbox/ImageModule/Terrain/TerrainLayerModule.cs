@@ -7,6 +7,7 @@ using Mapbox.BaseModule.Data.Interfaces;
 using Mapbox.BaseModule.Data.Tiles;
 using Mapbox.BaseModule.Map;
 using Mapbox.BaseModule.Unity;
+using Mapbox.ImageModule.Terrain.TerrainStrategies;
 using UnityEngine;
 using TerrainData = Mapbox.BaseModule.Data.DataFetchers.TerrainData;
 
@@ -17,6 +18,7 @@ namespace Mapbox.ImageModule.Terrain
         private TerrainLayerModuleSettings _settings;
         private Source<TerrainData> _rasterSource;
         private HashSet<CanonicalTileId> _retainedTerrainTiles;
+        private TerrainStrategy _terrainStrategy;
         
         //Terrain module doesn't support cpu elevation now after TileCreator changes
         public TerrainLayerModule(Source<TerrainData> source, TerrainLayerModuleSettings settings) : base()
@@ -24,12 +26,13 @@ namespace Mapbox.ImageModule.Terrain
             _settings = settings;
             _retainedTerrainTiles = new HashSet<CanonicalTileId>();
             _rasterSource = source;
+            _terrainStrategy = new ElevatedTerrainStrategy();
         }
         
         public virtual IEnumerator Initialize()
         {
             yield return _rasterSource.Initialize();
-            
+            _terrainStrategy.Initialize(_settings.ElevationLayerProperties);
             if(_settings.LoadBackgroundTextures)
             {
                 _rasterSource?.DownloadAndCacheBaseTiles();
@@ -50,9 +53,10 @@ namespace Mapbox.ImageModule.Terrain
             for (int i = parentTileId.Z; i >= 2; i--)
             {
                 parentTileId = parentTileId.Parent;
-                if (_rasterSource.GetInstantData(parentTileId, out var instantData))
+                if (_rasterSource.GetInstantData(parentTileId, out var instantData)  && instantData.IsElevationDataReady)
                 {
                     unityTile.TerrainContainer.SetTerrainData(instantData, _settings.UseShaderTerrain, TileContainerState.Temporary);
+                    _terrainStrategy.RegisterTile(unityTile, !_settings.UseShaderTerrain);
                     return;
                 }
             }
@@ -71,14 +75,14 @@ namespace Mapbox.ImageModule.Terrain
             if (_rasterSource.GetInstantData(targetTileId, out var instantData) && instantData.IsElevationDataReady)
             {
                 unityTile.TerrainContainer.SetTerrainData(instantData, _settings.UseShaderTerrain);
+                _terrainStrategy.RegisterTile(unityTile, !_settings.UseShaderTerrain);
                 return true;
             }
             
             return false;
         }
-        
-        public virtual bool RetainTiles(HashSet<CanonicalTileId> retainedTiles,
-            Dictionary<UnwrappedTileId, UnityMapTile> activeTiles)
+
+        public virtual bool RetainTiles(HashSet<CanonicalTileId> retainedTiles, Dictionary<UnwrappedTileId, UnityMapTile> activeTiles)
         {
             if (_settings.ElevationLayerType == ElevationLayerType.FlatTerrain)
                 return true;

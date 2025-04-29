@@ -1,6 +1,7 @@
 using System;
 using Mapbox.BaseModule.Data.Interfaces;
 using Mapbox.BaseModule.Map;
+using Mapbox.ImageModule.Terrain.Settings;
 using UnityEngine;
 
 namespace Mapbox.ImageModule.Terrain
@@ -16,5 +17,7 @@ namespace Mapbox.ImageModule.Terrain
         
         [Tooltip("Tile outside this range will be rejected.")]
         public Vector2 RejectTilesOutsideZoom = new Vector2(12, 16);
+
+        public ElevationLayerProperties ElevationLayerProperties;
     }
 }
