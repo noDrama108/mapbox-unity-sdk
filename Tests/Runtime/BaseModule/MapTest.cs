@@ -90,7 +90,7 @@ public class MapTest : MonoBehaviour
 
         _map = new MapboxMap(mapInfo, unityContext, mapService);
         var mapVisualizer = new MapboxMapVisualizer(mapInfo, unityContext,
-            new TileCreator(unityContext, new FlatTerrainStrategy()));
+            new TileCreator(unityContext));
         _map.MapVisualizer = mapVisualizer;
 
         var imageryTileset = MapboxDefaultImagery.GetParameters(ImagerySourceType.MapboxSatellite);
