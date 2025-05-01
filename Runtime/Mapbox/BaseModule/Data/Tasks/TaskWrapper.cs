@@ -38,4 +38,19 @@ namespace Mapbox.BaseModule.Data.Tasks
             }
         }
     }
+
+    public class FileCacheTaskWrapper<T> : DataTaskWrapper<T>
+    {
+        
+    }
+    
+    public class SqliteCacheAddTaskWrapper<T> : DataTaskWrapper<T>
+    {
+        
+    }
+    
+    public class SqliteCacheUpdateExpirationTaskWrapper<T> : DataTaskWrapper<T>
+    {
+        
+    }
 }

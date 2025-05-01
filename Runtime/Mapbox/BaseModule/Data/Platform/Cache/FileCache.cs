@@ -208,7 +208,7 @@ namespace Mapbox.BaseModule.Data.Platform.Cache
 
 			//we don't track task here anymore as we don't inted to cancel it
 			//so it's fire and forget task with low priority
-			var task = new DataTaskWrapper<bool>()
+			var task = new FileCacheTaskWrapper<bool>()
 			{
 				TileId = info.TextureCacheItem.TileId,
 				DataAction = () =>

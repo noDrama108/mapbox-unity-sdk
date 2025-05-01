@@ -248,7 +248,7 @@ CONSTRAINT tileAssignmentConstraint UNIQUE (tileId, mapId)
 		public virtual void UpdateExpiration(string tilesetName, CanonicalTileId tileId, DateTime expirationDate)
 		{
 			_taskManager.AddTask(
-				new DataTaskWrapper<bool>()
+				new SqliteCacheUpdateExpirationTaskWrapper<bool>()
 				{
 					TileId = tileId,
 					DataAction = () =>
@@ -472,7 +472,7 @@ CONSTRAINT tileAssignmentConstraint UNIQUE (tileId, mapId)
 			}
 			
 			_taskManager.AddTask(
-				new DataTaskWrapper<bool>()
+				new SqliteCacheAddTaskWrapper<bool>()
 				{
 					TileId = tileId,
 					DataAction = () =>
