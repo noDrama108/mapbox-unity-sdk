@@ -43,6 +43,7 @@ namespace Mapbox.BaseModule.Map
             
             SetLatitudeLongitude(latitudeLongitude);
             _isInitialized = true;
+            QueryElevation = (tileId, x, y) => 0;
         }
 
         //PROPERTIES

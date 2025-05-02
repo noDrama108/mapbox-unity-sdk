@@ -55,13 +55,12 @@ namespace Mapbox.ImageModule.Terrain.TerrainStrategies
 				: _elevationOptions.modificationOptions.sampleCount + 1;
 			_skirtSize = elOptions.sideWallOptions.wallHeight;
 			
-			_requiredVertexCount =  _sideVertexCount * _sideVertexCount;
 			_newVertexList = new List<Vector3>(_requiredVertexCount);
 			_newNormalList = new List<Vector3>(_requiredVertexCount);
 			_newUvList = new List<Vector2>(_requiredVertexCount);
-			//_newTriangleList = new List<int>();
 			
 			_baseMesh = CreateBaseMesh(TileSize, _sideVertexCount);
+			_requiredVertexCount = _baseMesh.Vertices.Length;
 		}
 
 		public override void RegisterTile(UnityMapTile tile, bool createElevatedMesh)
@@ -71,7 +70,7 @@ namespace Mapbox.ImageModule.Terrain.TerrainStrategies
 				tile.gameObject.layer = _elevationOptions.unityLayerOptions.layerId;
 			}
 
-			if (tile.MeshFilter.sharedMesh.vertexCount != RequiredVertexCount)
+			if (tile.MeshVertexCount != RequiredVertexCount)
 			{
 				Mesh sharedMesh;
 				(sharedMesh = tile.MeshFilter.sharedMesh).Clear();
@@ -85,18 +84,9 @@ namespace Mapbox.ImageModule.Terrain.TerrainStrategies
 					sharedMesh.SetTriangles(triangle, i);
 				}
 				sharedMesh.uv = newMesh.Uvs;
+				tile.MeshVertexCount = newMesh.Vertices.Length;
 			}
 			
-			// if (_elevationOptions.sideWallOptions.isActive)
-			// {
-			// 	var firstMat = tile.MeshRenderer.materials[0];
-			// 	tile.MeshRenderer.materials = new Material[2]
-			// 	{
-			// 		firstMat,
-			// 		_elevationOptions.sideWallOptions.wallMaterial
-			// 	};
-			// }
-
 			if (createElevatedMesh)
 			{
 				CreateElevatedMesh(tile);

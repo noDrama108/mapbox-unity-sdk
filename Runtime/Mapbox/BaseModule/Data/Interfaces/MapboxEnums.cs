@@ -182,9 +182,9 @@ namespace Mapbox.BaseModule.Data.Interfaces
 	public enum ElevationLayerType
 	{
 #if !ENABLE_WINMD_SUPPORT
-		[Description("Render flat terrain with no elevation.")]
+		//[Description("Render flat terrain with no elevation.")]
 #endif
-		FlatTerrain,
+		//FlatTerrain,
 #if !ENABLE_WINMD_SUPPORT
 		[Description("Render terrain with elevation from the source specified.")]
 #endif

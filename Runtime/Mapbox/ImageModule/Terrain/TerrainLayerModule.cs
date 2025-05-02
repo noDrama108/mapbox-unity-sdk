@@ -20,7 +20,6 @@ namespace Mapbox.ImageModule.Terrain
         private HashSet<CanonicalTileId> _retainedTerrainTiles;
         private TerrainStrategy _terrainStrategy;
         
-        //Terrain module doesn't support cpu elevation now after TileCreator changes
         public TerrainLayerModule(Source<TerrainData> source, TerrainLayerModuleSettings settings) : base()
         {
             _settings = settings;
@@ -41,8 +40,7 @@ namespace Mapbox.ImageModule.Terrain
 
         public virtual void LoadTempTile(UnityMapTile unityTile)
         {
-            if (_settings.ElevationLayerType == ElevationLayerType.FlatTerrain || 
-                unityTile.CanonicalTileId.Z < _settings.RejectTilesOutsideZoom.x)
+            if (unityTile.CanonicalTileId.Z < _settings.RejectTilesOutsideZoom.x)
             {
                 unityTile.TerrainContainer.DisableTerrain();
                 return;
@@ -64,8 +62,7 @@ namespace Mapbox.ImageModule.Terrain
         
         public virtual bool LoadInstant(UnityMapTile unityTile)
         {
-            if (_settings.ElevationLayerType == ElevationLayerType.FlatTerrain || 
-                unityTile.CanonicalTileId.Z < _settings.RejectTilesOutsideZoom.x)
+            if (unityTile.CanonicalTileId.Z < _settings.RejectTilesOutsideZoom.x)
             {
                 unityTile.TerrainContainer.DisableTerrain();
                 return true;
@@ -84,9 +81,6 @@ namespace Mapbox.ImageModule.Terrain
 
         public virtual bool RetainTiles(HashSet<CanonicalTileId> retainedTiles, Dictionary<UnwrappedTileId, UnityMapTile> activeTiles)
         {
-            if (_settings.ElevationLayerType == ElevationLayerType.FlatTerrain)
-                return true;
-            
             var isReady = true;
             _retainedTerrainTiles.Clear();
             foreach (var tileId in retainedTiles)
@@ -100,25 +94,18 @@ namespace Mapbox.ImageModule.Terrain
 
         public float QueryElevation(CanonicalTileId tileId, float x, float y)
         {
-            if (_settings.ElevationLayerType == ElevationLayerType.TerrainWithElevation)
+            var originalTileId = tileId;
+            var targetTileId = tileId;
+            for (int i = 0; i < 5; i++)
             {
-                var originalTileId = tileId;
-                var targetTileId = tileId;
-                for (int i = 0; i < 5; i++)
+                if (_rasterSource.GetInstantData(targetTileId, out var instantData))
                 {
-                    if (_rasterSource.GetInstantData(targetTileId, out var instantData))
-                    {
-                        return instantData.QueryHeightData(originalTileId, x, y);
-                    }
-                    targetTileId = targetTileId.Parent;
+                    return instantData.QueryHeightData(originalTileId, x, y);
                 }
-                
-                return 0;
+                targetTileId = targetTileId.Parent;
             }
-            else
-            {
-                return 0;
-            }
+            
+            return 0;
         }
         
         public void UpdatePositioning(IMapInformation mapInfo)
@@ -135,19 +122,12 @@ namespace Mapbox.ImageModule.Terrain
         #region coroutine methods
         public virtual IEnumerator LoadTileData(CanonicalTileId tileId, Action<MapboxTileData> callback = null)
         {
-            if (_settings.ElevationLayerType == ElevationLayerType.TerrainWithElevation)
-            {
-                return _rasterSource.LoadTileCoroutine(tileId, callback);
-            }
-            return null;
+            return _rasterSource.LoadTileCoroutine(tileId, callback);
         }
 
         public virtual IEnumerator LoadTiles(IEnumerable<CanonicalTileId> tiles)
         {
-            if (_settings.ElevationLayerType == ElevationLayerType.TerrainWithElevation)
-            {
-                yield return _rasterSource.LoadTilesCoroutine(GetDataId(tiles));
-            }
+            yield return _rasterSource.LoadTilesCoroutine(GetDataId(tiles));
         }
         
         public IEnumerable<IEnumerator> GetTileCoverCoroutines(IEnumerable<CanonicalTileId> tiles)

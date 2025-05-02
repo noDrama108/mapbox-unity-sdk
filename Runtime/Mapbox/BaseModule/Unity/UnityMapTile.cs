@@ -54,6 +54,7 @@ namespace Mapbox.BaseModule.Unity
 				return _meshFilter;
 			}
 		}
+		public int MeshVertexCount = 0;
 
 		public bool IsTemporary = false;
 
