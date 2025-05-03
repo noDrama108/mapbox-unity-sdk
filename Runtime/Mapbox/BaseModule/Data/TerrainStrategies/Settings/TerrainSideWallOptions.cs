@@ -9,6 +9,6 @@ namespace Mapbox.ImageModule.Terrain.Settings
 		[Tooltip("Adds side walls to terrain meshes, reduces visual artifacts.")]
 		public bool isActive = false;
 		[Tooltip("Height of side walls.")]
-		public float wallHeight = 10;
+		public float wallHeight = .1f;
 	}
 }
