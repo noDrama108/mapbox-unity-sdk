@@ -164,6 +164,8 @@ public class MapTest : MonoBehaviour
         yield return _map.Initialize();
         yield return _map.LoadMapViewCoroutine();
         yield return new WaitForSeconds(2);
+        while (_dataManager.ActiveFetchCount > 0 || _dataManager.FetchQueueCount > 0)
+            yield return null;
         
         var updatedTileCount = 0;
         foreach (var record in _dataManager.Records)

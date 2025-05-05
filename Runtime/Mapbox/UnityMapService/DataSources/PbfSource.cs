@@ -174,31 +174,34 @@ namespace Mapbox.UnityMapService.DataSources
             var dataTask = GetTileInfoAsync<T>(requestedDataTileId, _tilesetId, 0);
             if (dataTask != null) // can be null if sqlite cache isn't available
             {
-                dataTask.DataCompleted += (task, cacheItem) =>
-                {
-                    _waitingList.Remove(requestedDataTileId);
-                    if (dataTile.CurrentTileState == TileState.Canceled)
-                    {
-                        callback?.Invoke(null);
-                        return;
-                    }
-                    else if (cacheItem != null)
-                    {
-                        _memoryCache.Add(cacheItem);
-                        CheckExpiration(cacheItem);
-                        if (_waitingList.ContainsKey(cacheItem.TileId))
-                            _waitingList.Remove(cacheItem.TileId);
-                        callback?.Invoke(cacheItem);
-                    }
-                    else
-                    {
-                        CreateWebRequest(callback, dataTile);
-                    }
-                };
+                if (dataTask.IsCompleted) //supporting instant calls
+                    HandleResponse(dataTask.DataResult);
+                else 
+                    dataTask.DataCompleted += (task, cacheItem) => { HandleResponse(cacheItem); };
             }
             else
             {
                 CreateWebRequest(callback, dataTile);
+            }
+
+            void HandleResponse(T cacheItem)
+            {
+                _waitingList.Remove(requestedDataTileId);
+                if (dataTile.CurrentTileState == TileState.Canceled)
+                {
+                    callback?.Invoke(null);
+                    return;
+                }
+                else if (cacheItem != null)
+                {
+                    _memoryCache.Add(cacheItem);
+                    CheckExpiration(cacheItem);
+                    callback?.Invoke(cacheItem);
+                }
+                else
+                {
+                    CreateWebRequest(callback, dataTile);
+                }
             }
         }
 

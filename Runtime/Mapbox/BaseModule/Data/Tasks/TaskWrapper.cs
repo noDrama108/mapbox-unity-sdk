@@ -13,6 +13,8 @@ namespace Mapbox.BaseModule.Data.Tasks
         public CanonicalTileId TileId;
         
         public bool IsCancelled { get; private set; }
+        public bool IsCompleted { get; set; }
+
         public void Cancel() { IsCancelled = true; }
 
         public abstract void Action();
@@ -32,6 +34,7 @@ namespace Mapbox.BaseModule.Data.Tasks
 
         public override void Completed(Task task)
         {
+            IsCompleted = true;
             if (DataCompleted != null)
             {
                 DataCompleted(task, DataResult);

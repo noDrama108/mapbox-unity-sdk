@@ -116,20 +116,21 @@ namespace Mapbox.BaseModuleTests
             Assert.AreEqual(_testTexture.GetPixels32(), resultData.Texture.GetPixels32());
         }
         
-        [UnityTest]
-        public IEnumerator GetTileInfoTest()
+        [Test]
+        public void GetTileInfoTest()
         {
             SaveBlobTest();
             VectorData resultData = null;
             bool isDone = false;
             var wrapper = _cacheManager.CreateGetTileInfoTask<VectorData>(_testTileId, _testTilesetName);
-            wrapper.DataCompleted += (task, data) =>
-            {
-                resultData = data;
-                isDone = true;
-            };
-            _cacheManager.AddTask(wrapper);
-            while (!isDone) yield return null;
+            resultData = wrapper.DataResult;
+            // wrapper.DataCompleted += (task, data) =>
+            // {
+            //     resultData = data;
+            //     isDone = true;
+            // };
+            // _cacheManager.AddTask(wrapper);
+            // while (!isDone) yield return null;
             
             Assert.AreEqual(_testVectorData.TilesetId, resultData.TilesetId);
             Assert.AreEqual(_testVectorData.TileId, resultData.TileId);
@@ -153,10 +154,10 @@ namespace Mapbox.BaseModuleTests
             Assert.IsNull(resultData.ETag);
             Assert.IsNull(resultData.ExpirationDate);
             isDone = false;
-            var wrapper = _cacheManager.CreateGetTileInfoTask(resultData.TileId, resultData.TilesetId, resultData);
-            wrapper.DataCompleted += (task, data) => isDone = true;
-            _cacheManager.AddTask(wrapper);
-            while (!isDone) yield return null;
+            var wrapper = _cacheManager.CreateGetTileInfoTask(resultData.TileId, resultData.TilesetId, 1, resultData);
+            // wrapper.DataCompleted += (task, data) => isDone = true;
+            // _cacheManager.AddTask(wrapper);
+            // while (!isDone) yield return null;
             
             Assert.AreEqual(_testRasterData.ETag, resultData.ETag);
             Assert.Less(_testRasterData.ExpirationDate.Value.Subtract(resultData.ExpirationDate.Value).TotalMinutes, 5);
@@ -169,14 +170,15 @@ namespace Mapbox.BaseModuleTests
             
             RasterData resultData = null;
             bool isDone = false;
-            var wrapper = _cacheManager.CreateGetTileInfoTask<RasterData>(_testTileId, _testTilesetName);
-            wrapper.DataCompleted += (task, data) =>
-            {
-                isDone = true;
-                resultData = data;
-            };
-            _cacheManager.AddTask(wrapper);
-            while(!isDone) yield return null;
+            var wrapper = _cacheManager.CreateGetTileInfoTask<RasterData>(_testTileId, _testTilesetName, 1);
+            resultData = wrapper.DataResult;
+            // wrapper.DataCompleted += (task, data) =>
+            // {
+            //     isDone = true;
+            //     resultData = data;
+            // };
+            // _cacheManager.AddTask(wrapper);
+            // while(!isDone) yield return null;
             
             Assert.NotNull(resultData);
             Assert.Less(_testRasterData.ExpirationDate.Value.Subtract(resultData.ExpirationDate.Value).TotalMinutes, 5);
@@ -184,14 +186,15 @@ namespace Mapbox.BaseModuleTests
             _cacheManager.UpdateExpiration(_testTileId, _testTilesetName, _testExpirationDate);
             
             isDone = false;
-            var wrapper2 = _cacheManager.CreateGetTileInfoTask<RasterData>(_testTileId, _testTilesetName);
-            wrapper2.DataCompleted += (task, data) =>
-            {
-                isDone = true;
-                resultData = data;
-            };
-            _cacheManager.AddTask(wrapper2);
-            while(!isDone) yield return null;
+            var wrapper2 = _cacheManager.CreateGetTileInfoTask<RasterData>(_testTileId, _testTilesetName, 1);
+            resultData = wrapper2.DataResult;
+            // wrapper2.DataCompleted += (task, data) =>
+            // {
+            //     isDone = true;
+            //     resultData = data;
+            // };
+            // _cacheManager.AddTask(wrapper2);
+            // while(!isDone) yield return null;
             
             Assert.NotNull(resultData);
             Assert.Less(_testExpirationDate.Subtract(resultData.ExpirationDate.Value).TotalMinutes, 5);

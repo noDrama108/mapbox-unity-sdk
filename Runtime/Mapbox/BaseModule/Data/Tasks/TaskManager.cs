@@ -12,7 +12,8 @@ namespace Mapbox.BaseModule.Data.Tasks
 {
 	public class TaskManager
 	{
-		public Action<TaskWrapper> TaskStarted = (t) => { };
+		public Action<TaskWrapper> TaskStarting = (t) => { };
+		public Action<TaskWrapper> TaskFinished = (t) => { };
 		public Action<TaskWrapper> TaskCancelled = (t) => { };
 		public int ActiveTaskLimit = 10;
 		protected const float _requestDelay = 0.2f;
@@ -117,7 +118,7 @@ namespace Mapbox.BaseModule.Data.Tasks
 
 		private void HandleTask(TaskWrapper wrapper)
 		{
-			TaskStarting(wrapper);
+			OnTaskStarting(wrapper);
 			var task = Task.Run(wrapper.Action, _globalCancellationTokenSource.Token);
 			_runningTasks.Add(wrapper);
 			task.ContinueWith((t) =>
@@ -127,56 +128,22 @@ namespace Mapbox.BaseModule.Data.Tasks
 					Debug.Log(t.Exception?.Message);
 					Debug.Break();
 				}
-				TaskFinished(wrapper);
+				OnTaskFinished(wrapper);
 				_runningTasks.Remove(wrapper);
 				wrapper.Completed(task);
 			}, TaskScheduler.FromCurrentSynchronizationContext());
-			TaskStarted(wrapper);
 		}
 
-		// private void HandleMeshGenTask(MeshGenTaskWrapper wrapper)
-		// {
-		// 	TaskStarting(wrapper);
-		// 	var task = Task.Run(wrapper.MeshGen);
-		// 	_runningTasks.Add(wrapper);
-		// 	task.ContinueWith((t) =>
-		// 	{
-		// 		if (t.IsFaulted)
-		// 		{
-		// 			// Debug.Log(t.Exception?.Message);
-		// 			// Debug.Log(wrapper.TileId);
-		// 			// Debug.Break();
-		// 			//return error
-		// 		}
-		// 		
-		// 		TaskFinished(wrapper);
-		// 		_runningTasks.Remove(wrapper);
-		// 		if (wrapper.ContinueMeshWith != null)
-		// 		{
-		// 			//Debug.Log(taskWrapper.FinishedFrame - taskWrapper.StartingFrame + " task timer");
-		// 			if (!t.IsFaulted)
-		// 			{
-		// 				
-		// 				wrapper.ContinueMeshWith(t.Result);
-		// 			}
-		// 			else
-		// 			{
-		// 				t.Result.ResultType = TaskResultType.MeshGenerationFailure;
-		// 				wrapper.ContinueMeshWith(null);
-		// 			}
-		// 		}
-		// 	}, TaskScheduler.FromCurrentSynchronizationContext());
-		// 	TaskStarted(wrapper);
-		// }
-
-		protected virtual void TaskStarting(TaskWrapper task)
+		protected virtual void OnTaskStarting(TaskWrapper task)
 		{
 			task.StartingTime = Time.time;
+			TaskStarting?.Invoke(task);
 		}
 
-		protected virtual void TaskFinished(TaskWrapper task)
+		protected virtual void OnTaskFinished(TaskWrapper task)
 		{
 			task.FinishedTime = Time.time;
+			TaskFinished?.Invoke(task);
 		}
 
 		public virtual void AddTask(TaskWrapper taskWrapper, int priorityLevel = 3)
@@ -199,7 +166,7 @@ namespace Mapbox.BaseModule.Data.Tasks
 			// _tasksByTile = null;
 			//_taskQueueList = null;
 			_taskQueue.Clear();
-			TaskStarted = null;
+			TaskStarting = null;
 			TaskCancelled = null;
 		}
 	}

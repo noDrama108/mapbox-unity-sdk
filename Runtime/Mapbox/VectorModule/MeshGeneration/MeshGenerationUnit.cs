@@ -78,7 +78,7 @@ namespace Mapbox.VectorModule.MeshGeneration
                     result.ResultType = TaskResultType.Success;
                     return result;
                 },
-                DataContinueWith = (task, taskResult) => //task may be null
+                DataCompleted = (task, taskResult) => //task may be null
                 {
                     if (!_isActive)
                         return;

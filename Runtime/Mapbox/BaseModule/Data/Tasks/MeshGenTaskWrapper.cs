@@ -8,7 +8,7 @@ namespace Mapbox.BaseModule.Data.Tasks
     {
         public MeshGenTaskWrapperResult DataResult;
         public Func<MeshGenTaskWrapperResult> DataAction;
-        public Action<Task, MeshGenTaskWrapperResult> DataContinueWith;
+        public Action<Task, MeshGenTaskWrapperResult> DataCompleted;
 
         public override void Action()
         {
@@ -19,7 +19,7 @@ namespace Mapbox.BaseModule.Data.Tasks
         {
             if (task != null && !task.IsFaulted)
             {
-                DataContinueWith(Task.CompletedTask, DataResult);
+                DataCompleted(Task.CompletedTask, DataResult);
                 return;
             }
             
@@ -27,14 +27,15 @@ namespace Mapbox.BaseModule.Data.Tasks
             {
                 DataResult ??= new MeshGenTaskWrapperResult();
                 DataResult.ResultType = TaskResultType.Cancelled;
-                DataContinueWith(null, DataResult);
+                DataCompleted(null, DataResult);
             }
             else
             {
                 DataResult ??= new MeshGenTaskWrapperResult();
                 DataResult.ResultType = TaskResultType.MeshGenerationFailure;
-                DataContinueWith(task, DataResult);
+                DataCompleted(task, DataResult);
             }
+            IsCompleted = true;
         }
     }
     

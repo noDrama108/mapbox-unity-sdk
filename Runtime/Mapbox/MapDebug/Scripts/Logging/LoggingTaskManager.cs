@@ -42,7 +42,7 @@ namespace Mapbox.MapDebug.Scripts.Logging
 
         public LoggingTaskManager()
         {
-            base.TaskStarted += (t) =>
+            base.TaskStarting += (t) =>
             {
                 //if (EnableLogging)
                 {
@@ -109,9 +109,9 @@ namespace Mapbox.MapDebug.Scripts.Logging
             EnableLogging = !EnableLogging;
         }
 
-        protected override void TaskStarting(TaskWrapper task)
+        protected override void OnTaskStarting(TaskWrapper task)
         {
-            base.TaskStarting(task);
+            base.OnTaskStarting(task);
             //Debug.Log(string.Format("{0} {1}-{2} | {3}", Time.frameCount, task.TileId, task.TilesetId, task.Info));
             if (EnableLogging)
             {
@@ -119,9 +119,9 @@ namespace Mapbox.MapDebug.Scripts.Logging
             }
         }
 
-        protected override void TaskFinished(TaskWrapper task)
+        protected override void OnTaskFinished(TaskWrapper task)
         {
-            base.TaskFinished(task);
+            base.OnTaskFinished(task);
             
             if (task is MeshGenTaskWrapper meshTask)
             {

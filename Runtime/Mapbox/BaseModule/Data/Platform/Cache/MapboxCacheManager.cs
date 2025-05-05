@@ -16,15 +16,15 @@ namespace Mapbox.BaseModule.Data.Platform.Cache
         void SaveBlob(MapboxTileData vectorCacheItem, bool forceInsert);
         void SaveImage(RasterData textureCacheItem, bool forceInsert);
         void GetImageAsync<T>(CanonicalTileId tileId, string tilesetId, bool isTextureNonreadable, Action<T> callback) where T : RasterData, new();
-        DataTaskWrapper<T> CreateGetTileInfoTask<T>(CanonicalTileId tileId, string tilesetid , T data = null) where T : MapboxTileData, new();
+        DataTaskWrapper<T> CreateGetTileInfoTask<T>(CanonicalTileId tileId, string tilesetid, int priority = 1, T data = null) where T : MapboxTileData, new();
         //DataTaskWrapper<T> CreateReadEtagExpirationTask<T>(T data, int priority = 1) where T : MapboxTileData, new();
         void UpdateExpiration(CanonicalTileId tileId, string tilesetId, DateTime date);
-        
-        void AddTask(TaskWrapper task, int priority = 1);
     }
 
     public class MapboxCacheManager : IMapboxCacheManager
     {
+        public Action<TaskWrapper> CacheTaskFinished = (t) => { };
+        
         protected IMemoryCache _memoryCache;
         protected IFileCache _textureFileCache;
         protected ISqliteCache _sqLiteCache;
@@ -113,20 +113,13 @@ namespace Mapbox.BaseModule.Data.Platform.Cache
         public virtual DataTaskWrapper<T> CreateGetTileInfoTask<T>(CanonicalTileId tileId, string tilesetid, int priority = 1, T data = null)
             where T : MapboxTileData, new()
         {
-            if (_sqLiteCache != null)
-            {
-                var task = new DataTaskWrapper<T>();
-                task.TileId = tileId;
-                task.DataAction = () => { return _sqLiteCache.Get<T>(tilesetid, tileId, data); };
-                return task;
-            }
-
-            return null;
-        }
-        
-        public void AddTask(TaskWrapper taskWrapper, int priority = 1)
-        {
-            _taskManager.AddTask(taskWrapper, priority);
+            if (_sqLiteCache == null) return null;
+            
+            var task = new DataTaskWrapper<T>();
+            task.TileId = tileId;
+            task.DataAction = () => _sqLiteCache.Get<T>(tilesetid, tileId, data);
+            _taskManager.AddTask(task, priority);
+            return task;
         }
 
         public virtual void UpdateExpiration(CanonicalTileId tileId, string tilesetId, DateTime date)

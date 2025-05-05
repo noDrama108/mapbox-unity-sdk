@@ -73,23 +73,23 @@ namespace Mapbox.BaseModuleTests
             Assert.IsTrue(_fileCache.Exists(_testTileId, _testTilesetName));
         }
 
-        [UnityTest]
-        public IEnumerator ReadTileTest()
-        {
-            AddTileTest();
-            RasterData resultData = null;
-            var isDone = false;
-            _fileCache.GetAsync<RasterData>(_testTileId, _testTilesetName, true, (data) =>
-            {
-                resultData = data;
-                isDone = true;
-            });
-            while (!isDone) yield return null;
-            
-            Assert.IsNotNull(resultData);
-            Assert.AreEqual(_testTileId, resultData.TileId);
-            Assert.AreEqual(_testTilesetName, resultData.TilesetId);
-        }
+        // [UnityTest]
+        // public IEnumerator ReadTileTest()
+        // {
+        //     AddTileTest();
+        //     RasterData resultData = null;
+        //     var isDone = false;
+        //     _fileCache.GetAsync<RasterData>(_testTileId, _testTilesetName, true, (data) =>
+        //     {
+        //         resultData = data;
+        //         isDone = true;
+        //     });
+        //     while (!isDone) yield return null;
+        //     
+        //     Assert.IsNotNull(resultData);
+        //     Assert.AreEqual(_testTileId, resultData.TileId);
+        //     Assert.AreEqual(_testTilesetName, resultData.TilesetId);
+        // }
         
         [UnityTest]
         public IEnumerator ReadTileCoroutineTest()

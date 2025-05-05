@@ -308,11 +308,14 @@ namespace Mapbox.UnityMapService.DataSources
             var dataTask = ReadEtagExpiration(cacheItem, 4);
             if (dataTask != null) //can be null if sqlite cache isn't available
             {
-                dataTask.DataCompleted += OnDataTaskDataContinueWith;
+                if (dataTask.IsCompleted) //supporting instant calls
+                    OnDataTaskDataContinueWith(dataTask.DataResult);
+                else
+                    dataTask.DataCompleted += (task, data) => OnDataTaskDataContinueWith(data);
             }
         }
 
-        private void OnDataTaskDataContinueWith(Task task, T data)
+        private void OnDataTaskDataContinueWith(T data)
         {
             if (data.ExpirationDate == null || DateTime.Compare((DateTime)data.ExpirationDate, DateTime.Now) < 0)
             {
