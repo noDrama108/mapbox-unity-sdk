@@ -233,6 +233,57 @@ namespace Mapbox.BaseModule.Data.Tiles
 			return new Vector4(scale, scale, offsetX, offsetY);
 		}
 		
+		public static Vector4 CalculateTopRightScaleOffsetAtZoom(this CanonicalTileId current, int zoomDiff)
+		{
+			var tileZoom = current.Z;
+
+			var scale = 1f;
+			var offsetX = 0f;
+			var offsetY = 0f;
+
+			var currentParent = current.Parent;
+
+			for (int i = tileZoom - 1; i >= zoomDiff; i--)
+			{
+				scale /= 2;
+
+				var bottomLeftChildX = currentParent.X * 2;
+				var bottomLeftChildY = currentParent.Y * 2;
+
+				//top left
+				if (current.X == bottomLeftChildX && current.Y == bottomLeftChildY)
+				{
+					offsetX = offsetX / 2;
+					offsetY = offsetY / 2;
+					
+					
+				}
+				//top right
+				else if (current.X == bottomLeftChildX + 1 && current.Y == bottomLeftChildY)
+				{
+					offsetX = 0.5f + (offsetX / 2);
+					offsetY = offsetY / 2;
+				}
+				//bottom left
+				else if (current.X == bottomLeftChildX && current.Y == bottomLeftChildY + 1)
+				{
+					offsetX = offsetX / 2;
+					offsetY = 0.5f + (offsetY / 2);
+				}
+				//bottom right
+				else if (current.X == bottomLeftChildX + 1 && current.Y == bottomLeftChildY + 1)
+				{
+					offsetX = 0.5f + (offsetX / 2);
+					offsetY = 0.5f + (offsetY / 2);
+				}
+
+				current = currentParent;
+				currentParent = currentParent.Parent;
+			}
+
+			return new Vector4(scale, scale, offsetX, offsetY);
+		}
+
 		public static CanonicalTileId Quadrant(this CanonicalTileId id, int i)
 		{
 			var childX  = (id.X << 1) + (i % 2);

@@ -34,16 +34,19 @@ namespace Mapbox.VectorModule
         
         private Transform _layerRootObject;
         
-        public VectorLayerVisualizer(string name, IMapInformation mapInformation, UnityContext unityContext, VectorLayerVisualizerSettings settings)
+        public VectorLayerVisualizer(string name, IMapInformation mapInformation, UnityContext unityContext = null, VectorLayerVisualizerSettings settings = null)
         {
             _vectorLayerName = name;
             _mapInformation = mapInformation;
             _unityContext = unityContext;
-            _settings = settings;
+            _settings = settings ?? new VectorLayerVisualizerSettings();
             _stackList = new Dictionary<int, ModifierStack>();
             _results = new Dictionary<CanonicalTileId, List<VectorEntity>>();
             _layerRootObject = new GameObject(_vectorLayerName + " layer objects").transform;
-            _layerRootObject.SetParent(_unityContext.RuntimeGenerationRoot);
+            if (_unityContext != null)
+            {
+                _layerRootObject.SetParent(_unityContext.RuntimeGenerationRoot);
+            }
             _layerRootObject.transform.localPosition = Vector3.zero;
             _layerRootObject.transform.position += _settings.Offset;
         }

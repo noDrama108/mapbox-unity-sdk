@@ -45,8 +45,10 @@ public class CompositeLayerModule : ILayerModule
     {
         foreach (var module in LayerModules)
         {
-            yield return module.LoadTiles(tiles);
+            module.LoadTiles(tiles);
         }
+
+        yield return null;
     }
 
     public IEnumerable<IEnumerator> GetTileCoverCoroutines(IEnumerable<CanonicalTileId> tiles)
@@ -55,7 +57,11 @@ public class CompositeLayerModule : ILayerModule
         {
             foreach (var routine in module.GetTileCoverCoroutines(tiles))
             {
-                yield return routine;
+                if (routine != null)
+                {
+                    yield return routine;
+                }
+
             }
         }
     }

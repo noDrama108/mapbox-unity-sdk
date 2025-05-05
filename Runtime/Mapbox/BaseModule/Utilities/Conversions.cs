@@ -398,7 +398,7 @@ namespace Mapbox.BaseModule.Utilities
 			return angle * 6378.16;
 		}
 
-		public static float LatitudeElevationCompensation(float latitude)
+		public static float LatitudeElevationCompensation(double latitude)
 		{
 			return Mathf.Cos(Mathf.Deg2Rad * (float) latitude);
 		}
