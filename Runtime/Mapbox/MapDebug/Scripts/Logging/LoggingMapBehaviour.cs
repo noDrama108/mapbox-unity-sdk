@@ -147,11 +147,12 @@ namespace Mapbox.MapDebug.Scripts.Logging
             _mapLogger.AddLogger(fileCache);
             _mapLogger.AddLogger(sqliteCache);
             
-            var cacheManager = new MapboxCacheManager(
+            var cacheManager = new LoggingCacheManager(
                 unityContext,
                 new MemoryCache(),
                 fileCache,
                 sqliteCache);
+            _mapLogger.AddLogger(cacheManager);
             return cacheManager;
         }
 

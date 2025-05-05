@@ -25,10 +25,11 @@ namespace Mapbox.MapDebug.Scripts.Logging
     
     public class LoggingTaskManager : TaskManager, ILogWriter
     {
-        public bool EnableLogging = false;
+        public bool EnableLogging = true;
         public int TotalTaskCreatedCount;
         public int TotalCancelledCount;
         public List<string> Logs = new List<string>();
+        public List<TaskWrapper> Records = new List<TaskWrapper>();
 
         public int ActiveTaskCount => _runningTasks.Count;
         public int TaskQueueSize => 0; // _taskQueue.Count; //_taskQueue.Count;
@@ -63,6 +64,7 @@ namespace Mapbox.MapDebug.Scripts.Logging
             if (EnableLogging)
             {
                 Logs.Add(string.Format("{0,-10} {2,-10} {1, -30}", Time.frameCount, "added", taskWrapper.GetType().Name));
+                Records.Add(taskWrapper);
             }
             base.AddTask(taskWrapper, priorityLevel);
         }
@@ -141,7 +143,23 @@ namespace Mapbox.MapDebug.Scripts.Logging
 
         public JObject DumpLogs()
         {
-            return null;
+            var dataLog = new JObject();
+            var jArray = new JArray();
+            foreach (var taskWrapper in Records)
+            {
+                var recordData = new JObject();
+                recordData["Type"] = taskWrapper.GetType().Name;
+                recordData["IsCancelled"] = taskWrapper.IsCancelled;
+                recordData["IsCompleted"] = taskWrapper.IsCompleted;
+                recordData["TileId"] = taskWrapper.TileId.ToString();
+                recordData["QueueTime"] = taskWrapper.EnqueueFrame;
+                recordData["StartTime"] = taskWrapper.StartingTime;
+                recordData["FinishTime"] = taskWrapper.FinishedTime;
+                jArray.Add(recordData);
+            }
+
+            dataLog["TaskLogs"] = jArray;
+            return dataLog;
         }
 
         public string PrintScreen()

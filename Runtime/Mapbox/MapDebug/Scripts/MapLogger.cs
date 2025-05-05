@@ -15,6 +15,7 @@ namespace Mapbox.MapDebug.Scripts
         private string _path;
         private GUIStyle style;
         private List<string> _screenLogs;
+        public InputField Dump;
     
         private void Start()
         {
@@ -78,18 +79,26 @@ namespace Mapbox.MapDebug.Scripts
 
         public void DumpLog()
         {
-            using (StreamWriter writer = new StreamWriter(_path, true))
+            var root = new JObject();
+            foreach (var logger in LogWriters)
             {
-                var root = new JObject();
-                foreach (var logger in LogWriters)
-                {
-                    var jobject = logger.DumpLogs();
-                    root.Add(logger.GetType().Name.ToString(), jobject);
-                }
-                writer.Write(root.ToString());
-                writer.Close();
+                root.Add(logger.GetType().Name.ToString(), logger.DumpLogs());
             }
+
+            Dump.text = root.ToString();
+            // using (StreamWriter writer = new StreamWriter(_path, true))
+            // {
+            //     var root = new JObject();
+            //     foreach (var logger in LogWriters)
+            //     {
+            //         var jobject = logger.DumpLogs();
+            //         root.Add(logger.GetType().Name.ToString(), jobject);
+            //     }
+            //     writer.Write(root.ToString());
+            //     writer.Close();
+            // }
         }
+        
 
         private static string GetFullLogPath(string dbName)
         {

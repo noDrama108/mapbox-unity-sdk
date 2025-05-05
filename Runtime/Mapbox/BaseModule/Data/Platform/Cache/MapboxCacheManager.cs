@@ -65,12 +65,12 @@ namespace Mapbox.BaseModule.Data.Platform.Cache
             }
         }
 
-        public void SaveBlob(MapboxTileData vectorCacheItem, bool forceInsert)
+        public virtual void SaveBlob(MapboxTileData vectorCacheItem, bool forceInsert)
         {
             _sqLiteCache?.Add(vectorCacheItem, forceInsert);
         }
 
-        public void SaveImage(RasterData textureCacheItem, bool forceInsert)
+        public virtual void SaveImage(RasterData textureCacheItem, bool forceInsert)
         {
             _textureFileCache?.Add(textureCacheItem, forceInsert, (path) =>
             {
@@ -78,7 +78,7 @@ namespace Mapbox.BaseModule.Data.Platform.Cache
             });
         }
 
-        public void GetImageAsync<T>(CanonicalTileId tileId, string tilesetId, bool isTextureNonreadable, Action<T> callback) where T : RasterData, new()
+        public virtual void GetImageAsync<T>(CanonicalTileId tileId, string tilesetId, bool isTextureNonreadable, Action<T> callback) where T : RasterData, new()
         {
             if (_textureFileCache != null)
             {
@@ -110,7 +110,7 @@ namespace Mapbox.BaseModule.Data.Platform.Cache
             }
         }
 
-        public DataTaskWrapper<T> CreateGetTileInfoTask<T>(CanonicalTileId tileId, string tilesetid, T data = null)
+        public virtual DataTaskWrapper<T> CreateGetTileInfoTask<T>(CanonicalTileId tileId, string tilesetid, int priority = 1, T data = null)
             where T : MapboxTileData, new()
         {
             if (_sqLiteCache != null)
@@ -129,7 +129,7 @@ namespace Mapbox.BaseModule.Data.Platform.Cache
             _taskManager.AddTask(taskWrapper, priority);
         }
 
-        public void UpdateExpiration(CanonicalTileId tileId, string tilesetId, DateTime date)
+        public virtual void UpdateExpiration(CanonicalTileId tileId, string tilesetId, DateTime date)
         {
             _sqLiteCache.UpdateExpiration(tilesetId, tileId, date);
         }
