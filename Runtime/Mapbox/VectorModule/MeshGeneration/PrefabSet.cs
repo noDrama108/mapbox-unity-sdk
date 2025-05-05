@@ -9,7 +9,6 @@ namespace Mapbox.VectorModule.MeshGeneration
 	[Serializable]
 	public class PrefabSet
 	{
-		public string Type;
 		public List<GameObject> Prefabs;
 		public Vector2 ScaleVariety = Vector2.one;
 		public Vector2 RotationVariety = new Vector2(0, 360);
