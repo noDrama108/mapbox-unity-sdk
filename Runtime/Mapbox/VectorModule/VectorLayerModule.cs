@@ -194,7 +194,7 @@ namespace Mapbox.VectorModule
 		public IEnumerable<IEnumerator> GetTileCoverCoroutines(IEnumerable<CanonicalTileId> tiles)
 		{
 			var targetTiles = GetTargetTileId(tiles).Distinct();
-			return targetTiles.Select(x => LoadTileData(x));
+			return targetTiles.Select(x => LoadAndProcessTileCoroutine(x));
 		}
 		
 		#endregion
