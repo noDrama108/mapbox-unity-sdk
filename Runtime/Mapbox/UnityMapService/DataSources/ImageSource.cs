@@ -44,7 +44,12 @@ namespace Mapbox.UnityMapService.DataSources
         
         public override bool GetInstantData(CanonicalTileId tileId, out T data)
         {
-            return _memoryCache.Get(tileId, out data);
+            var result = _memoryCache.Get(tileId, out data);
+            if (data != null)
+            {
+                data.CacheType = CacheType.MemoryCache;
+            }
+            return result;
         }
 
         public override bool RetainTiles(HashSet<CanonicalTileId> retainedTiles)
@@ -150,22 +155,46 @@ namespace Mapbox.UnityMapService.DataSources
                 {
                     yield return null;
                 }
-                _memoryCache.Get(requestedDataTileId, out resultData);
+                GetInstantData(requestedDataTileId, out resultData);
             }
             else
             {
-                var isDone = false;
-                LoadTileCore(requestedDataTileId, (result) =>
+                _waitingList[requestedDataTileId] = null;
+                yield return GetImageCoroutine<T>(requestedDataTileId, _tilesetId,
+                    _settings.UseNonReadableTextures,
+                    (data) =>
+                    {
+                        resultData = data;
+                        _waitingList.Remove(requestedDataTileId);
+                        
+                        if (resultData != null)
+                        {
+                            data.CacheType = CacheType.FileCache;
+                            _memoryCache.Add(data);
+                            CheckExpiration(data);
+                        }
+                    });
+
+                if (resultData == null)
                 {
-                    isDone = true;
-                    resultData = result;
-                });
-                while (!isDone)
-                {
-                    yield return null;
+                    var dataTile = CreateTile(requestedDataTileId, _tilesetId);
+                    _waitingList[requestedDataTileId] = dataTile;
+                    var working = true;
+                    WebRequestData(dataTile, (fetchingResult) =>
+                    {
+                        _waitingList.Remove(requestedDataTileId);
+                        if (dataTile.CurrentTileState == TileState.Loaded)
+                        {
+                            resultData = TextureFromWebForCoroutine(dataTile);
+                        }
+                        working = false;
+                    });
+                    while (working)
+                    {
+                        yield return null;
+                    }
                 }
             }
-
             
             callback?.Invoke(resultData);
         }
@@ -202,7 +231,7 @@ namespace Mapbox.UnityMapService.DataSources
             }
             _waitingList[requestedDataTileId] = null;
 
-            GetImageAsync<T>(requestedDataTileId, _tilesetId, true, (cacheItem) =>
+            GetImageAsync<T>(requestedDataTileId, _tilesetId, _settings.UseNonReadableTextures, (cacheItem) =>
             {
                 if (cacheItem != null)
                 {
@@ -251,6 +280,37 @@ namespace Mapbox.UnityMapService.DataSources
         }
 
         protected virtual T TextureReceivedFromWeb(RasterTile tile)
+        {
+            tile.AddLog(string.Format("{0} - {1}", Time.unscaledTime, " TextureReceivedHandler"));
+            if (tile.Texture2D != null)
+            {
+                tile.AddLog("updated and old texture is destroyed");
+                GameObject.Destroy(tile.Texture2D);
+            }
+
+            if (tile.CurrentTileState == TileState.Loaded && tile.Data != null)
+            {
+                //IMPORTANT This is where we create a Texture2D
+                tile.AddLog("extracting texture ", tile.Id);
+                tile.ExtractTextureFromRequest();
+
+                var newTextureCacheItem = CreateRasterDataWrapper(tile);
+
+                _memoryCache.Add(newTextureCacheItem);
+                SaveImage(newTextureCacheItem, true);
+
+                return newTextureCacheItem;
+            }
+
+            return null;
+        }
+
+        //this is a clone of method above for terrain coroutine process
+        //terrain source overrides method above and calls extract elevation data there
+        //this one doesn't call extract data anywhere and it's handles separately during
+        //coroutine stuff
+        //this should be the one to stay in the future
+        private T TextureFromWebForCoroutine(RasterTile tile)
         {
             tile.AddLog(string.Format("{0} - {1}", Time.unscaledTime, " TextureReceivedHandler"));
             if (tile.Texture2D != null)

@@ -1,8 +1,11 @@
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using Mapbox.BaseModule.Data.DataFetchers;
 using Mapbox.BaseModule.Data.Platform.Cache;
 using Mapbox.BaseModule.Data.Tiles;
 using Mapbox.BaseModule.Map;
+using Mapbox.BaseModule.Utilities;
 using UnityEngine;
 using TerrainData = Mapbox.BaseModule.Data.DataFetchers.TerrainData;
 
@@ -18,8 +21,8 @@ namespace Mapbox.UnityMapService.DataSources
         {
             _settings = settings;
             _elevationDataExtractionStrategy = SystemInfo.supportsAsyncGPUReadback
-                ? (IElevationDataExtractionStrategy) new AsyncExtractElevationArray()
-                : (IElevationDataExtractionStrategy) new SyncExtractElevationArray();
+                ? new AsyncExtractElevationArray()
+                : new SyncExtractElevationArray();
         }
         
         public override void DownloadAndCacheBaseTiles()
@@ -58,7 +61,7 @@ namespace Mapbox.UnityMapService.DataSources
             {
                 if (SystemInfo.supportsAsyncGPUReadback)
                 {
-                    rasterTile = new DemRasterTile(tileId, tilesetId, true);
+                    rasterTile = new DemRasterTile(tileId, tilesetId, _settings.UseNonReadableTextures);
                 }
                 else
                 {
@@ -70,7 +73,7 @@ namespace Mapbox.UnityMapService.DataSources
             {
                 if (SystemInfo.supportsAsyncGPUReadback)
                 {
-                    rasterTile = new RawPngRasterTile(tileId, tilesetId, true);
+                    rasterTile = new RawPngRasterTile(tileId, tilesetId, _settings.UseNonReadableTextures);
                 }
                 else
                 {
@@ -97,6 +100,31 @@ namespace Mapbox.UnityMapService.DataSources
             return rasterData;
         }
 
+        public override IEnumerator LoadTileCoroutine(CanonicalTileId requestedDataTileId, Action<TerrainData> callback = null)
+        {
+            TerrainData terrainData = null;
+            yield return Runnable.Instance.StartCoroutine(base.LoadTileCoroutine(requestedDataTileId, (data) =>
+            {
+                terrainData = data;
+            }));
+            if (terrainData != null)
+            {
+                yield return Runnable.Instance.StartCoroutine(ExtractElevationValues(terrainData));
+            }
+            callback?.Invoke(terrainData);
+        }
+        
+        protected IEnumerator ExtractElevationValues(TerrainData data)
+        {
+            var finished = false;
+            _elevationDataExtractionStrategy.ExtractHeightData(data.Texture, (elevationArray) =>
+            {
+                data.SetElevationValues(elevationArray);
+                finished = true;
+            });
+            while (!finished) yield return null;
+        }
+        
         protected override void TextureReceivedFromFile(TerrainData cacheItem)
         {
             base.TextureReceivedFromFile(cacheItem);

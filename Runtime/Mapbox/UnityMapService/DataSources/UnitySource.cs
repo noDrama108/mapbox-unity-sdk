@@ -122,6 +122,11 @@ namespace Mapbox.UnityMapService.DataSources
             _cacheManager.GetImageAsync(tileId, tilesetId, isTextureNonreadable, callback);
         }
         
+        public IEnumerator GetImageCoroutine<T1>(CanonicalTileId tileId, string tilesetId, bool isTextureNonreadable, Action<T1> callback) where T1 : RasterData, new()
+        {
+            yield return _cacheManager.GetImageCoroutine(tileId, tilesetId, isTextureNonreadable, callback);
+        }
+        
         public DataTaskWrapper<T1> GetTileInfoAsync<T1>(CanonicalTileId tileId, string tilesetid, int priority = 1) where T1 : MapboxTileData, new()
             => GetTileData<T1>(tileId, tilesetid, null, priority);
         
