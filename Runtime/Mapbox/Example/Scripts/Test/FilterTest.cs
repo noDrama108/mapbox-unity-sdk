@@ -17,7 +17,7 @@ namespace Mapbox.Example.Scripts.Test
             mapBehaviour.Initialized += (map) =>
             {
                 var mapVisualizer = map.MapVisualizer;
-                if (mapVisualizer.TryGetLayerModule<VectorLayerModule>(typeof(VectorLayerModule), out var vectorModule))
+                if (mapVisualizer.TryGetLayerModule<VectorLayerModule>(out var vectorModule))
                 {
                     if (vectorModule.TryGetLayerVisualizer("building", out var layerVisualizer))
                     {

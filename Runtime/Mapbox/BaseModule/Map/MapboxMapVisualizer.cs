@@ -24,7 +24,6 @@ namespace Mapbox.BaseModule.Map
 
         private HashSet<UnwrappedTileId> _toRemove;
         private HashSet<CanonicalTileId> _retainedTiles;
-
         private int _tilePerFrameLimit = 20;
         private int _tileCreatedThisFrame = 0;
 
@@ -88,7 +87,7 @@ namespace Mapbox.BaseModule.Map
                 {
                     if (unityMapTile.IsTemporary)
                     {
-                        FinalizeTempTile(unityMapTile);
+                        CreateTile(unityMapTile);
                     }
                     
                     ShowTile(unityMapTile);
@@ -147,14 +146,10 @@ namespace Mapbox.BaseModule.Map
         {
             foreach (var tileId in tileCover.Tiles)
             {
-                if (CreateTileInstant(tileId, out var unityMapTile))
-                {
-                    
-                }
-                else
-                {
-                    CreateTempTile(tileId, out unityMapTile);
-                }
+                UnityMapTile unityMapTile = null;
+                if (!CreateTileInstant(tileId, out unityMapTile)) //if we can't fully load the tile
+                    CreateTempTile(tileId, out unityMapTile); //we load it whatever data we can find
+                
                 ShowTile(unityMapTile);
             }
         }
@@ -176,9 +171,9 @@ namespace Mapbox.BaseModule.Map
         /// <param name="module"></param>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public bool TryGetLayerModule<T>(Type type, out T module) where T : ILayerModule
+        public bool TryGetLayerModule<T>(out T module) where T : ILayerModule
         {
-            module = (T)LayerModules.FirstOrDefault(x => x.GetType() == type);
+            module = (T)LayerModules.FirstOrDefault(x => x is T);
             return module != null;
         }
         
@@ -218,7 +213,8 @@ namespace Mapbox.BaseModule.Map
                 }
             }
 
-            if (quadrantCheck.Any(x => x))
+            //if (quadrantCheck.Any(x => x))
+            if (quadrantCheck[0] || quadrantCheck[1] || quadrantCheck[2] || quadrantCheck[3])
             {
                 for (int i = 0; i < 4; i++)
                 {
@@ -270,7 +266,7 @@ namespace Mapbox.BaseModule.Map
             //we need to do positioning and scaling before mesh gen for now
             GetMapTile(tileId, out tile);
 
-            var result = FinalizeTempTile(tile);
+            var result = CreateTile(tile);
             
             //couldn't create the tile
             if (!result) PoolTile(tile);
@@ -288,7 +284,7 @@ namespace Mapbox.BaseModule.Map
             tile.Initialize(tileId, (float) rectd.Size.x * _mapInformation.Scale);
         }
         
-        protected bool FinalizeTempTile(UnityMapTile unityMapTile)
+        protected bool CreateTile(UnityMapTile unityMapTile)
         {
             var tileFinished = true;
             foreach (var module in LayerModules)
