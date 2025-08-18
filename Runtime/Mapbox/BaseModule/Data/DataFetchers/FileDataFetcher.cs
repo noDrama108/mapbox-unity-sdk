@@ -63,16 +63,23 @@ namespace Mapbox.BaseModule.Data.DataFetchers
 			{
 				var response = new WebRequestResponse();
 				yield return webRequest.SendWebRequest();
-								
+				
+				#if UNITY_EDITOR
+				//need this for tests
+				while (webRequest.result == UnityWebRequest.Result.InProgress) yield return null;
+				#endif
+				
 				if (webRequest != null &&
 				    webRequest.result == UnityWebRequest.Result.ConnectionError ||
 				    webRequest.result == UnityWebRequest.Result.ProtocolError)
 				{
 					//Debug.Log(webRequest.error);
+					response.Result = WebResponseResult.Failed;
 					response.AddException(new Exception(webRequest.error));
 				}
 				else
 				{
+					response.Result = WebResponseResult.Success;
 					response.StatusCode = webRequest.responseCode;
 					response.Data = webRequest.downloadHandler.data;
 				}

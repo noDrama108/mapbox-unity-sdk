@@ -122,6 +122,11 @@ namespace Mapbox.UnityMapService.DataSources
             _cacheManager.GetImageAsync(tileId, tilesetId, isTextureNonreadable, callback);
         }
         
+        public IEnumerator GetImageCoroutine<T1>(CanonicalTileId tileId, string tilesetId, bool isTextureNonreadable, Action<T1> callback) where T1 : RasterData, new()
+        {
+            yield return _cacheManager.GetImageCoroutine(tileId, tilesetId, isTextureNonreadable, callback);
+        }
+        
         public DataTaskWrapper<T1> GetTileInfoAsync<T1>(CanonicalTileId tileId, string tilesetid, int priority = 1) where T1 : MapboxTileData, new()
             => GetTileData<T1>(tileId, tilesetid, null, priority);
         
@@ -130,7 +135,7 @@ namespace Mapbox.UnityMapService.DataSources
 
         private DataTaskWrapper<T1> GetTileData<T1>(CanonicalTileId tileId, string tilesetid, T1 data = null, int priority = 1) where T1 : MapboxTileData, new()
         {
-            var taskWrapper = _cacheManager.CreateGetTileInfoTask<T1>(tileId, tilesetid);
+            var taskWrapper = _cacheManager.GetTileInfoTask<T1>(tileId, tilesetid);
             if (taskWrapper == null) return null;
             if (taskWrapper.IsCompleted)
             {
@@ -142,6 +147,11 @@ namespace Mapbox.UnityMapService.DataSources
                 taskWrapper.DataCompleted += ((resultTask, result) => CompleteTask(taskWrapper));
             }
             return taskWrapper;
+        }
+        
+        public IEnumerator GetTileData<T1>(CanonicalTileId tileId, string tilesetid, T1 data = null, int priority = 1, Action<T1> callback = null) where T1 : MapboxTileData, new()
+        {
+            yield return _cacheManager.GetBlobCoroutine<T1>(tileId, tilesetid, priority, data, callback);
         }
         
         public void UpdateExpiration(CanonicalTileId tileId, string tilesetId, DateTime date)

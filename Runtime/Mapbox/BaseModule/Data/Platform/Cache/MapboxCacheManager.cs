@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.IO;
 using System.Linq;
 using Mapbox.BaseModule.Data.DataFetchers;
@@ -16,8 +17,11 @@ namespace Mapbox.BaseModule.Data.Platform.Cache
         void SaveBlob(MapboxTileData vectorCacheItem, bool forceInsert);
         void SaveImage(RasterData textureCacheItem, bool forceInsert);
         void GetImageAsync<T>(CanonicalTileId tileId, string tilesetId, bool isTextureNonreadable, Action<T> callback) where T : RasterData, new();
-        DataTaskWrapper<T> CreateGetTileInfoTask<T>(CanonicalTileId tileId, string tilesetid, int priority = 1, T data = null) where T : MapboxTileData, new();
-        //DataTaskWrapper<T> CreateReadEtagExpirationTask<T>(T data, int priority = 1) where T : MapboxTileData, new();
+
+        IEnumerator GetImageCoroutine<T>(CanonicalTileId tileId, string tilesetId, bool isTextureNonreadable, Action<T> callback) where T : RasterData, new();
+        DataTaskWrapper<T> GetTileInfoTask<T>(CanonicalTileId tileId, string tilesetid, int priority = 1, T data = null) where T : MapboxTileData, new();
+        IEnumerator GetBlobCoroutine<T>(CanonicalTileId tileId, string tilesetid, int priority = 1, T data = null, Action<T> callback = null) where T : MapboxTileData, new();
+        
         void UpdateExpiration(CanonicalTileId tileId, string tilesetId, DateTime date);
     }
 
@@ -65,11 +69,8 @@ namespace Mapbox.BaseModule.Data.Platform.Cache
             }
         }
 
-        public virtual void SaveBlob(MapboxTileData vectorCacheItem, bool forceInsert)
-        {
-            _sqLiteCache?.Add(vectorCacheItem, forceInsert);
-        }
-
+        
+        
         public virtual void SaveImage(RasterData textureCacheItem, bool forceInsert)
         {
             _textureFileCache?.Add(textureCacheItem, forceInsert, (path) =>
@@ -77,7 +78,12 @@ namespace Mapbox.BaseModule.Data.Platform.Cache
                 _sqLiteCache?.SyncAdd(textureCacheItem.TilesetId, textureCacheItem.TileId, null, path, textureCacheItem.ETag, textureCacheItem.ExpirationDate, true);
             });
         }
-
+        
+        public virtual void SaveBlob(MapboxTileData vectorCacheItem, bool forceInsert)
+        {
+            _sqLiteCache?.Add(vectorCacheItem, forceInsert);
+        }
+        
         public virtual void GetImageAsync<T>(CanonicalTileId tileId, string tilesetId, bool isTextureNonreadable, Action<T> callback) where T : RasterData, new()
         {
             if (_textureFileCache != null)
@@ -109,8 +115,8 @@ namespace Mapbox.BaseModule.Data.Platform.Cache
                 callback(null);    
             }
         }
-
-        public virtual DataTaskWrapper<T> CreateGetTileInfoTask<T>(CanonicalTileId tileId, string tilesetid, int priority = 1, T data = null)
+        
+        public virtual DataTaskWrapper<T> GetTileInfoTask<T>(CanonicalTileId tileId, string tilesetid, int priority = 1, T data = null)
             where T : MapboxTileData, new()
         {
             if (_sqLiteCache == null) return null;
@@ -121,7 +127,54 @@ namespace Mapbox.BaseModule.Data.Platform.Cache
             _taskManager.AddTask(task, priority);
             return task;
         }
+        
+        
+        
+        public virtual IEnumerator SaveImageCoroutine(RasterData textureCacheItem, bool forceInsert)
+        {
+            string finalPath = ""; 
+            yield return _textureFileCache?.AddCoroutine(textureCacheItem, (path) =>
+            {
+                finalPath = path;
+            });
+            if (!string.IsNullOrEmpty(finalPath))
+            {
+                _sqLiteCache?.SyncAdd(textureCacheItem.TilesetId, textureCacheItem.TileId, null, finalPath, textureCacheItem.ETag, textureCacheItem.ExpirationDate, true);
+            }
+        }
 
+        public virtual IEnumerator SaveBlobCoroutine(MapboxTileData vectorCacheItem, bool forceInsert)
+        {
+            if (_sqLiteCache != null)
+            {
+                var isWorking = true;
+                _sqLiteCache.Add(vectorCacheItem, forceInsert, (success) => { isWorking = false; });
+                while (isWorking) yield return null;
+            }
+        }
+        
+        public virtual IEnumerator GetImageCoroutine<T>(CanonicalTileId tileId, string tilesetId, bool isTextureNonreadable, Action<T> callback) where T : RasterData, new()
+        {
+            yield return _textureFileCache.GetCoroutine(tileId, tilesetId, isTextureNonreadable, callback);
+        }
+
+        public virtual IEnumerator GetBlobCoroutine<T>(CanonicalTileId tileId, string tilesetid, int priority = 1, T data = null, Action<T> callback = null) where T : MapboxTileData, new()
+        {
+            if (_sqLiteCache == null) yield break;
+            
+            var task = new DataTaskWrapper<T>
+            {
+                TileId = tileId,
+                DataAction = () => _sqLiteCache.Get<T>(tilesetid, tileId, data)
+            };
+            _taskManager.AddTask(task, priority);
+            while(task.IsCompleted == false) yield return null;
+            
+            callback?.Invoke(task.DataResult);
+        }
+
+        
+        
         public virtual void UpdateExpiration(CanonicalTileId tileId, string tilesetId, DateTime date)
         {
             _sqLiteCache.UpdateExpiration(tilesetId, tileId, date);
