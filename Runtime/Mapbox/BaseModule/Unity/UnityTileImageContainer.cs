@@ -8,6 +8,7 @@ namespace Mapbox.BaseModule.Unity
     [Serializable]
     public class UnityTileImageContainer
     {
+        public Action OnDispose = () => { };
         public TileContainerState State = TileContainerState.Final;
         private UnityMapTile _unityMapTile;
         private string _mainTexFieldNameID = "_MainTex";
@@ -22,12 +23,15 @@ namespace Mapbox.BaseModule.Unity
 
         public void SetImageData(RasterData imageData, TileContainerState state = TileContainerState.Final)
         {
+            if(ImageData != null) ImageData.OnDispose -= OnDispose;
+            
             State = state;
             if (imageData.Texture == null || imageData.TileId.Z == 0)
             {
                 Debug.Log("no texture?");
             }
             ImageData = imageData;
+            ImageData.OnDispose += OnDispose;
             OnImageryUpdated();
         }
 
@@ -50,6 +54,7 @@ namespace Mapbox.BaseModule.Unity
 
             _unityMapTile.Material.SetTexture(_mainTexFieldNameID, Texture2D.blackTexture);
             var rd = ImageData;
+            ImageData.OnDispose -= OnDispose;
             ImageData = null;
             return rd;
         }

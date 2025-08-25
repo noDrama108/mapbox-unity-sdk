@@ -31,9 +31,18 @@ namespace Mapbox.BaseModule.Map
         {
             _unityContext = unityContext;
             _mapInformation = mapInformation;
-            _tileCreator = tileCreator;
+            
             ActiveTiles = new Dictionary<UnwrappedTileId, UnityMapTile>(100);
             LayerModules = new List<ILayerModule>();
+            
+            _tileCreator = tileCreator;
+            _tileCreator.OnTileBroken += (tt) =>
+            {
+                if (ActiveTiles.TryGetValue(tt, out var mapTile))
+                {
+                    PoolTile(mapTile);
+                }
+            };
 
             _mapInformation.WorldScaleChanged += RepositionAllTiles;
             

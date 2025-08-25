@@ -8,6 +8,7 @@ namespace Mapbox.BaseModule.Unity
 {
 	public class UnityMapTile : MonoBehaviour
 	{
+		public Action<UnwrappedTileId> OnDataDispose = (t) => { };
 		public UnwrappedTileId UnwrappedTileId { get; private set; }
 		public CanonicalTileId CanonicalTileId { get; private set; }
 		public float TileScale { get; private set; }
@@ -61,6 +62,7 @@ namespace Mapbox.BaseModule.Unity
 		public void Awake()
 		{
 			ImageContainer = new UnityTileImageContainer(this);
+			ImageContainer.OnDispose += DataDisposed;
 			VectorContainer = new UnityTileVectorContainer(this);
 			TerrainContainer = new UnityTileTerrainContainer(this);
 			TerrainContainer.ElevationValuesUpdated += tile =>
@@ -96,6 +98,11 @@ namespace Mapbox.BaseModule.Unity
 			ImageContainer.GetAndClearImageData();
 			TerrainContainer.GetAndClearTerrainData();
 			VectorContainer.GetAndClearVectorData();
+		}
+
+		private void DataDisposed()
+		{
+			OnDataDispose(this.UnwrappedTileId);
 		}
 		
 		private void OnDestroy()

@@ -1,4 +1,6 @@
+using System;
 using System.Collections;
+using Mapbox.BaseModule.Data.Tiles;
 using Mapbox.BaseModule.Unity;
 using Mapbox.BaseModule.Utilities;
 using Mapbox.ImageModule.Terrain.Settings;
@@ -12,6 +14,11 @@ namespace Mapbox.BaseModule.Map
         IEnumerator Initialize(TerrainStrategy terrainStrategy = null);
         UnityMapTile GetTile();
         void PutTile(UnityMapTile tile);
+
+        /// <summary>
+        /// Some tile elements are destroyed so tile isn't good for use/reuse anymore
+        /// </summary>
+        event Action<UnwrappedTileId> OnTileBroken;
     }
     public class TileCreator : ITileCreator
     {
@@ -56,7 +63,11 @@ namespace Mapbox.BaseModule.Map
             tile.Material = tile.MeshRenderer.material;
             tile.gameObject.SetActive(false);
             _terrainStrategy?.RegisterTile(tile, false);
+            tile.OnDataDispose += OnTileBroken;
+            
             return tile;
         }
+
+        public event Action<UnwrappedTileId> OnTileBroken = (id) => { };
     }
 }

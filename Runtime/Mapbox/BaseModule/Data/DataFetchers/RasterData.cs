@@ -20,6 +20,7 @@ namespace Mapbox.BaseModule.Data.DataFetchers
             //no idea if this'll work with native
             GameObject.Destroy(Texture);
             Texture = null;
+            base.Dispose();
         }
     }
 }

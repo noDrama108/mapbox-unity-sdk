@@ -12,151 +12,321 @@ namespace Mapbox.BaseModule.Data.Platform.Cache
     //retainTiles method provides in-use support; not sound but good enough
     public class TypeMemoryCache<T> : ITypeCache where T : MapboxTileData
     {
-        public readonly int CacheSize;
+        public Action<CanonicalTileId> CacheItemDisposed = (t) => { };
+        
+        private readonly int _inactiveCapacity;
+        
+        // Active list
+        private readonly Dictionary<CanonicalTileId, T> _active;
+        // Inactive lists
+        private readonly Dictionary<CanonicalTileId, LinkedListNode<(CanonicalTileId key, T value)>> _inactiveMap;
+        private readonly LinkedList<(CanonicalTileId key, T value)> _inactiveList;
+        
+        //public readonly int CacheSize;
         private Dictionary<CanonicalTileId, T> _fallbackDatas;
-        private Dictionary<CanonicalTileId, LinkedListNode<T>> _cacheHash;
-        private LinkedList<T> _cache;
-        private Thread mainThread;
+        //private Dictionary<CanonicalTileId, LinkedListNode<T>> _cacheHash;
+        //private LinkedList<T> _cache;
+        //private Thread mainThread;
         private HashSet<CanonicalTileId> _previousFrameTiles;
         
         public TypeMemoryCache(int cacheSize = 100)
         {
-            mainThread = System.Threading.Thread.CurrentThread;
-            CacheSize = cacheSize;
-            _cacheHash = new Dictionary<CanonicalTileId, LinkedListNode<T>>();
-            _cache = new LinkedList<T>();
+            if (cacheSize <= 0)
+                throw new ArgumentException("Inactive capacity must be > 0");
+
+            _inactiveCapacity = cacheSize;
+            _active = new Dictionary<CanonicalTileId, T>();
+            _inactiveMap = new Dictionary<CanonicalTileId, LinkedListNode<(CanonicalTileId, T)>>();
+            _inactiveList = new LinkedList<(CanonicalTileId, T)>();
+            
+            //mainThread = System.Threading.Thread.CurrentThread;
+            //CacheSize = cacheSize;
+            // _cacheHash = new Dictionary<CanonicalTileId, LinkedListNode<T>>();
+            // _cache = new LinkedList<T>();
             // _datas = new Dictionary<CanonicalTileId, T>();
             // _trackedDatas = new Queue<CanonicalTileId>();
             _fallbackDatas = new Dictionary<CanonicalTileId, T>();
         }
-			
+		
+        /// <summary>
+        /// Add new data to the active pool. Replaces if key already exists.
+        /// </summary>
         public void Add(T data)
         {
-            if (_cacheHash.TryGetValue(data.TileId, out var node))
+            _active[data.TileId] = data;
+        }
+        
+        /// <summary>
+        /// Get data by key. Promotes from inactive to active if found.
+        /// </summary>
+        public bool Get(CanonicalTileId key, out T outData)
+        {
+            if (_active.TryGetValue(key, out outData))
+                return true;
+
+            if (_inactiveMap.TryGetValue(key, out var node))
             {
-                _cache.Remove(node);
-                _cache.AddFirst(node);
+                // Promote to active
+                _inactiveList.Remove(node);
+                _inactiveMap.Remove(key);
+
+                _active[key] = node.Value.value;
+                outData = node.Value.value;
+                return true;
             }
-            else
+
+            if (_fallbackDatas.TryGetValue(key, out outData))
             {
-                Prune();
-
-                if (_cache.Count < CacheSize)
-                {
-                    var llNode = _cache.AddFirst(data);
-                    _cacheHash.Add(data.TileId, llNode);
-                }
+                return true;
             }
-        }
 
-        private void Prune()
-        {
-            if (_cache.Count >= CacheSize)
-            {
-                for (int i = 0; i < Mathf.Min(20, _cache.Count); i++)
-                {
-                    var lastItem = _cache.Last;
-                    if (_previousFrameTiles != null && !_previousFrameTiles.Contains(lastItem.Value.TileId))
-                    {
-                        DropItem(_cache.Last);
-                        break;
-                    }
-                    else
-                    {
-                        _cache.RemoveLast();
-                        _cache.AddFirst(lastItem);
-                    }
-                }
-            }
-        }
-
-        private void DropItem(LinkedListNode<T> node)
-        {
-            _cache.Remove(node);
-            var disposedTileId = node.Value.TileId;
-            _cacheHash.Remove(disposedTileId);
-            node.Value.Dispose();
-            CacheItemDisposed(disposedTileId);
-        }
-
-        public bool Exists(CanonicalTileId tileId)
-        {
-            return _cacheHash.ContainsKey(tileId) || _fallbackDatas.ContainsKey(tileId);
-            //return _datas.ContainsKey(tileId) || _fallbackDatas.ContainsKey(tileId);
-        }
-
-        public bool Get(CanonicalTileId tileId, out T outData)
-        {
             outData = null;
-            if (_cacheHash.TryGetValue(tileId, out var linkedNode))
-            {
-                outData = linkedNode.Value;
-                if (mainThread.Equals(System.Threading.Thread.CurrentThread))
-                {
-                    _cache.Remove(linkedNode);
-                    _cache.AddFirst(linkedNode);
-                }
-
-                return true;
-            }
-
-            if (_fallbackDatas.TryGetValue(tileId, out var data))
-            {
-                outData = data;
-                return true;
-            }
-            
             return false;
         }
-
-        public IEnumerable<T> GetAllDatas()
-        {
-            return _cacheHash.Values.Select(x => x.Value);
-        }
-
+        
         public void Remove(CanonicalTileId tileId)
         {
-            if (_cacheHash.TryGetValue(tileId, out var linkedListNode))
+            if (_active.TryGetValue(tileId, out var data))
             {
-                DropItem(linkedListNode);
+                _active.Remove(tileId);
+                return;
+            }
+
+            if (_inactiveMap.TryGetValue(tileId, out var tuple))
+            {
+                _inactiveMap.Remove(tileId);
+                _inactiveList.Remove(tuple);
+                return;
+            }
+
+            if (_fallbackDatas.TryGetValue(tileId, out var fallback))
+            {
+                _fallbackDatas.Remove(tileId);
             }
         }
-
         
-        public void RetainTiles(HashSet<CanonicalTileId> retainedTiles)
+        /// <summary>
+        /// Returns true if the key exists in active or inactive pools.
+        /// </summary>
+        public bool Exists(CanonicalTileId key)
         {
-            _previousFrameTiles = retainedTiles;
+            return _active.ContainsKey(key) || _inactiveMap.ContainsKey(key) || _fallbackDatas.ContainsKey(key);
         }
+        
+        /// <summary>
+        /// Call once per frame with the set of keys that should stay active.
+        /// Others are demoted into the inactive pool.
+        /// </summary>
+        public void RetainTiles(HashSet<CanonicalTileId> currentActiveKeys)
+        {
+            var toDemote = new List<CanonicalTileId>();
+            foreach (var key in _active.Keys)
+            {
+                if (!currentActiveKeys.Contains(key))
+                    toDemote.Add(key);
+            }
 
+            foreach (var key in toDemote)
+            {
+                var value = _active[key];
+                _active.Remove(key);
+
+                var node = new LinkedListNode<(CanonicalTileId, T)>((key, value));
+                _inactiveList.AddFirst(node);
+                _inactiveMap[key] = node;
+
+                if (_inactiveList.Count > _inactiveCapacity)
+                {
+                    var last = _inactiveList.Last;
+                    _inactiveList.RemoveLast();
+                    _inactiveMap.Remove(last.Value.key);
+                    CacheItemDisposed(last.Value.key);
+                    last.Value.value.Dispose();
+                }
+            }
+        }
+        
         public void MarkFallback(CanonicalTileId dataTileId)
         {
-            if (_cacheHash.TryGetValue(dataTileId, out var data))
+            if (_active.TryGetValue(dataTileId, out var data))
             {
-                _cacheHash.Remove(dataTileId);
-                _cache.Remove(data);
-                _fallbackDatas.Add(dataTileId, data.Value);
+                _active.Remove(dataTileId);
+                _fallbackDatas.Add(dataTileId, data);
+            }
+            if (_inactiveMap.TryGetValue(dataTileId, out var tuple))
+            {
+                _inactiveMap.Remove(dataTileId);
+                _inactiveList.Remove(tuple);
+                _fallbackDatas.Add(dataTileId, tuple.Value.value);
             }
         }
+        
+        public IEnumerable<T> GetAllDatas()
+        {
+            foreach (var data in _active)
+            {
+                yield return data.Value;
+            }
 
-        public Action<CanonicalTileId> CacheItemDisposed = (t) => { };
+            foreach (var data in _inactiveList)
+            {
+                yield return data.value;
+            }
 
+            foreach (var data in _fallbackDatas)
+            {
+                yield return data.Value;
+            }
+        }
         public void OnDestroy()
         {
-            foreach (var tileData in _cacheHash.Values)
+            foreach (var tileData in _active.Values)
             {
-                tileData.Value.Dispose();
+                tileData.Dispose();
             }
-            _cacheHash.Clear();
-            _cacheHash = null;
+            foreach (var tileData in _inactiveList)
+            {
+                tileData.value.Dispose();
+            }
             foreach (var fallbackData in _fallbackDatas.Values)
             {
                 fallbackData.Dispose();
             }
+            
+            _active.Clear();
+            _inactiveList.Clear();
+            _inactiveMap.Clear();
             _fallbackDatas.Clear();
-            _fallbackDatas = null;
-            _cache.Clear();
-            _cache = null;
         }
+        
+        // public void Add(T data)
+        // {
+        //     if (_cacheHash.TryGetValue(data.TileId, out var node))
+        //     {
+        //         _cache.Remove(node);
+        //         _cache.AddFirst(node);
+        //     }
+        //     else
+        //     {
+        //         Prune();
+        //
+        //         if (_cache.Count < CacheSize)
+        //         {
+        //             var llNode = _cache.AddFirst(data);
+        //             _cacheHash.Add(data.TileId, llNode);
+        //         }
+        //     }
+        // }
+        //
+        // private void Prune()
+        // {
+        //     if (_cache.Count >= CacheSize)
+        //     {
+        //         for (int i = 0; i < Mathf.Min(20, _cache.Count); i++)
+        //         {
+        //             var lastItem = _cache.Last;
+        //             if (_previousFrameTiles != null && !_previousFrameTiles.Contains(lastItem.Value.TileId))
+        //             {
+        //                 DropItem(_cache.Last);
+        //                 break;
+        //             }
+        //             else
+        //             {
+        //                 _cache.RemoveLast();
+        //                 _cache.AddFirst(lastItem);
+        //             }
+        //         }
+        //     }
+        // }
+        //
+        // private void DropItem(LinkedListNode<T> node)
+        // {
+        //     _cache.Remove(node);
+        //     var disposedTileId = node.Value.TileId;
+        //     _cacheHash.Remove(disposedTileId);
+        //     node.Value.Dispose();
+        //     CacheItemDisposed(disposedTileId);
+        // }
+        //
+        // public bool Exists(CanonicalTileId tileId)
+        // {
+        //     return _cacheHash.ContainsKey(tileId) || _fallbackDatas.ContainsKey(tileId);
+        //     //return _datas.ContainsKey(tileId) || _fallbackDatas.ContainsKey(tileId);
+        // }
+        //
+        // public bool Get(CanonicalTileId tileId, out T outData)
+        // {
+        //     outData = null;
+        //     if (_cacheHash.TryGetValue(tileId, out var linkedNode))
+        //     {
+        //         outData = linkedNode.Value;
+        //         if (mainThread.Equals(System.Threading.Thread.CurrentThread))
+        //         {
+        //             _cache.Remove(linkedNode);
+        //             _cache.AddFirst(linkedNode);
+        //         }
+        //
+        //         return true;
+        //     }
+        //
+        //     if (_fallbackDatas.TryGetValue(tileId, out var data))
+        //     {
+        //         outData = data;
+        //         return true;
+        //     }
+        //     
+        //     return false;
+        // }
+        //
+        // public IEnumerable<T> GetAllDatas()
+        // {
+        //     return _cacheHash.Values.Select(x => x.Value);
+        // }
+        //
+        // public void Remove(CanonicalTileId tileId)
+        // {
+        //     if (_cacheHash.TryGetValue(tileId, out var linkedListNode))
+        //     {
+        //         DropItem(linkedListNode);
+        //     }
+        // }
+        //
+        //
+        // public void RetainTiles(HashSet<CanonicalTileId> retainedTiles)
+        // {
+        //     _previousFrameTiles = retainedTiles;
+        // }
+        //
+        // public void MarkFallback(CanonicalTileId dataTileId)
+        // {
+        //     if (_cacheHash.TryGetValue(dataTileId, out var data))
+        //     {
+        //         _cacheHash.Remove(dataTileId);
+        //         _cache.Remove(data);
+        //         _fallbackDatas.Add(dataTileId, data.Value);
+        //     }
+        // }
+        //
+        // public Action<CanonicalTileId> CacheItemDisposed = (t) => { };
+        //
+        // public void OnDestroy()
+        // {
+        //     foreach (var tileData in _cacheHash.Values)
+        //     {
+        //         tileData.Value.Dispose();
+        //     }
+        //     _cacheHash.Clear();
+        //     _cacheHash = null;
+        //     foreach (var fallbackData in _fallbackDatas.Values)
+        //     {
+        //         fallbackData.Dispose();
+        //     }
+        //     _fallbackDatas.Clear();
+        //     _fallbackDatas = null;
+        //     _cache.Clear();
+        //     _cache = null;
+        // }
+        
     }
     
     public interface ITypeCache
