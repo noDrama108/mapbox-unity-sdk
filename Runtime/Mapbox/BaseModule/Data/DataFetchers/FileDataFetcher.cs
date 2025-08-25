@@ -10,6 +10,7 @@ namespace Mapbox.BaseModule.Data.DataFetchers
 {
 	public class FileDataFetcher
 	{
+		//TODO keep track of all fetchFile coroutines and cancel them on destroy/app stopped
 		public void FetchData<T>(string filePath, CanonicalTileId tileId, string tilesetId, bool isTextureNonreadable, Action<T> callback) where T : RasterData, new()
 		{
 			var webRequest = UnityWebRequestTexture.GetTexture(filePath, isTextureNonreadable);
