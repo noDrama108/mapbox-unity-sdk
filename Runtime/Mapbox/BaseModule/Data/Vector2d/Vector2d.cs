@@ -269,6 +269,11 @@ namespace Mapbox.BaseModule.Data.Vector2d
 	[Serializable]
 	public struct LatitudeLongitude
 	{
+		public static LatitudeLongitude Invalid => new(MAX_LATITUDE * 2, MAX_LONGITUDE * 2);
+		public static bool operator ==(in LatitudeLongitude a, in LatitudeLongitude b) => a.Equals(in b);
+		public static bool operator !=(in LatitudeLongitude a, in LatitudeLongitude b) => !a.Equals(in b);
+		
+		
 		public double Latitude;
 		public double Longitude;
 
@@ -280,9 +285,7 @@ namespace Mapbox.BaseModule.Data.Vector2d
             Latitude = latitude;
             Longitude = longitude;
         }
-
-        public static LatitudeLongitude Invalid => new(MAX_LATITUDE * 2, MAX_LONGITUDE * 2);
-
+        
         public override string ToString()
         {
             return string.Format(NumberFormatInfo.InvariantInfo, "{0},{1}", this.Latitude, this.Longitude);
@@ -292,17 +295,7 @@ namespace Mapbox.BaseModule.Data.Vector2d
         {
             return string.Format(NumberFormatInfo.InvariantInfo, "{0:F5},{1:F5}", this.Longitude, this.Latitude);
         }
-
-        public static double Dot(LatitudeLongitude lhs, LatitudeLongitude rhs)
-        {
-            return lhs.Latitude * rhs.Latitude + lhs.Longitude * rhs.Longitude;
-        }
-
-        public static LatitudeLongitude operator -(LatitudeLongitude a, LatitudeLongitude b)
-        {
-            return new LatitudeLongitude(a.Longitude - b.Longitude, a.Latitude - b.Latitude);
-        }
-
+        
         public static bool AlmostEqual(double a, double b, double tolerance = double.Epsilon)
         {
             return Math.Abs(a - b) < tolerance;
@@ -314,9 +307,7 @@ namespace Mapbox.BaseModule.Data.Vector2d
         }
 
         public override bool Equals(object obj) => obj is LatitudeLongitude other && Equals(in other);
-        public static bool operator ==(in LatitudeLongitude a, in LatitudeLongitude b) => a.Equals(in b);
-        public static bool operator !=(in LatitudeLongitude a, in LatitudeLongitude b) => !a.Equals(in b);
-
+        
         public bool IsValid()// technically invalid only if latitude is outside of [-90, 90] as longitude can wrap around
         {
             return Latitude >= -MAX_LATITUDE &&
@@ -326,7 +317,7 @@ namespace Mapbox.BaseModule.Data.Vector2d
         }
         public override int GetHashCode()
         {
-	        return this.x.GetHashCode() ^ this.y.GetHashCode() << 2;
+	        return this.Latitude.GetHashCode() ^ this.Longitude.GetHashCode() << 2;
         }
 	}
 }
