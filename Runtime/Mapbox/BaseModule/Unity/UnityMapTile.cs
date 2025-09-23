@@ -61,10 +61,7 @@ namespace Mapbox.BaseModule.Unity
 
 		public void Awake()
 		{
-			ImageContainer = new UnityTileImageContainer(this)
-			{
-				OnDispose = DataDisposed
-			};
+			ImageContainer = new UnityTileImageContainer(this, DataDisposed);
 			VectorContainer = new UnityTileVectorContainer(this);
 			TerrainContainer = new UnityTileTerrainContainer(this);
 			TerrainContainer.ElevationValuesUpdated += tile =>
