@@ -327,10 +327,15 @@ namespace Mapbox.BaseModule.Data.Platform.Cache
         //     _cache = null;
         // }
         
+        
+        public int ActiveCount => _active.Count;
+        public int InactiveCount => _inactiveMap.Count;
     }
     
     public interface ITypeCache
     {
         void OnDestroy();
+        int ActiveCount { get; }
+        int InactiveCount { get; }
     }
 }

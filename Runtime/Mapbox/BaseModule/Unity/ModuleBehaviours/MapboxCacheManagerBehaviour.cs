@@ -9,6 +9,7 @@ namespace Mapbox.Example.Scripts.ModuleBehaviours
     public class MapboxCacheManagerBehaviour : MonoBehaviour
     {
         public MapboxCacheManager CacheManager;
+        public MemoryCache MemoryCache;
 
         public MapboxCacheManager GetCacheManager() => CacheManager;
 
@@ -23,10 +24,11 @@ namespace Mapbox.Example.Scripts.ModuleBehaviours
                 FileCache fileCache = null;
                 sqliteCache = CreateSqliteCache ? new SqliteCache(unityContext.TaskManager, 1000) : null;
                 fileCache = CreateFileCache ? new FileCache(unityContext.TaskManager) : null;
-
+                MemoryCache = new MemoryCache();
+                
                 CacheManager = new MapboxCacheManager(
                     unityContext,
-                    new MemoryCache(),
+                    MemoryCache,
                     fileCache,
                     sqliteCache);
             }
