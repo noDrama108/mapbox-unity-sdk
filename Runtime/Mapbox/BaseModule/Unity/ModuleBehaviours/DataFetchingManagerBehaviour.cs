@@ -9,7 +9,7 @@ namespace Mapbox.Example.Scripts.ModuleBehaviours
         public DataFetchingManager DataFetcher;
 
         public DataFetchingManager GetDataFetchingManager() => DataFetcher;
-        public DataFetchingManager GetDataFetchingManager(string accessToken, Func<string> skuTokenFunc)
+        public virtual DataFetchingManager GetDataFetchingManager(string accessToken, Func<string> skuTokenFunc)
         {
             if (DataFetcher == null)
             {
