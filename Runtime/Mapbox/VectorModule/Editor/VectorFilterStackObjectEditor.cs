@@ -54,6 +54,11 @@ namespace Mapbox.VectorModule.Editor
         
         public override void OnInspectorGUI()
         {
+            serializedObject.Update();
+            
+            string[] combinerNames = { "Pass all filters (AND)", "Pass any filter (OR)", "Fail all filters (NOT)" };
+            DrawEnumPopup(serializedObject, "Type", "Process if", combinerNames);
+            
             if (m_filters == null)
             {
                 m_filters = serializedObject.FindProperty(nameof(VectorFilterStackObject.Filters));
@@ -63,7 +68,7 @@ namespace Mapbox.VectorModule.Editor
             else if (m_filters.arraySize != m_Editors.Count)
                 UpdateEditorList();
 
-            serializedObject.Update();
+            serializedObject.ApplyModifiedProperties();
             DrawFilterList();
         }
         
@@ -79,12 +84,13 @@ namespace Mapbox.VectorModule.Editor
             else
             {
                 //Draw List
-                CoreEditorUtils.DrawSplitter();
                 for (int i = 0; i < m_filters.arraySize; i++)
                 {
                     SerializedProperty renderFeaturesProperty = m_filters.GetArrayElementAtIndex(i);
-                    DrawFilter(i, ref renderFeaturesProperty);
-                    CoreEditorUtils.DrawSplitter();
+                    using (new EditorGUILayout.VerticalScope(EditorStyles.helpBox))
+                    {
+                        DrawFilter(i, ref renderFeaturesProperty);
+                    }
                 }
             }
             EditorGUILayout.Space();
@@ -284,6 +290,33 @@ namespace Mapbox.VectorModule.Editor
 
             // Force save / refresh
             ForceSave();
+        }
+        
+        /// <summary>
+        /// Draws an enum dropdown with custom display names, properly updating a serialized property.
+        /// </summary>
+        public static void DrawEnumPopup(SerializedObject serializedObject, string propertyName, string label, string[] displayNames)
+        {
+            SerializedProperty prop = serializedObject.FindProperty(propertyName);
+            if (prop == null || !prop.propertyType.HasFlag(SerializedPropertyType.Enum))
+            {
+                EditorGUILayout.HelpBox($"Property '{propertyName}' is not a valid enum.", MessageType.Warning);
+                return;
+            }
+
+            int currentIndex = prop.enumValueIndex;
+
+            // Clamp to avoid out-of-range errors
+            if (currentIndex < 0 || currentIndex >= displayNames.Length)
+                currentIndex = 0;
+
+            int newIndex = EditorGUILayout.Popup(label, currentIndex, displayNames);
+
+            if (newIndex != currentIndex)
+            {
+                prop.enumValueIndex = newIndex;
+                serializedObject.ApplyModifiedProperties();
+            }
         }
     }
 }

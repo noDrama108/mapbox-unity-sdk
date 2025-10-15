@@ -17,7 +17,7 @@ public class ModifierStackEditor : Editor
     private SerializedProperty m_MeshModifiers;
     private SerializedProperty m_GoModifiers;
     private SerializedProperty m_FilterStack;
-    private SerializedProperty m_MergeObjects;
+    private SerializedProperty m_Settings;
     [SerializeField] private bool falseBool = false;
     private SerializedProperty m_FalseBool;
     private Texture2D _magnifier;
@@ -29,7 +29,7 @@ public class ModifierStackEditor : Editor
         m_Editors.Add(m_MeshModifiers, new List<Editor>());
         m_GoModifiers = serializedObject.FindProperty(nameof(ModifierStackObject.GoModifiers));
         m_Editors.Add(m_GoModifiers, new List<Editor>());
-        m_MergeObjects = serializedObject.FindProperty(nameof(ModifierStackObject.Settings));
+        m_Settings = serializedObject.FindProperty(nameof(ModifierStackObject.Settings));
         _magnifier = EditorGUIUtility.FindTexture("d_ViewToolZoom");
         
         var editorObj = new SerializedObject(this);
@@ -66,68 +66,97 @@ public class ModifierStackEditor : Editor
     {
         if (!EditorUtility.IsPersistent(target))
             return;
-        
-        
+
         if (m_FilterStack == null)
             CreateFilterStack();
 
         serializedObject.Update();
-        
-        EditorGUILayout.Space();
-        SerializedProperty nameProperty = serializedObject.FindProperty("m_Name");
+
+        // HEADER
+        DrawHeader();
+        EditorGUILayout.Space(5);
+
+        // SETTINGS
+        CoreEditorUtils.DrawSplitter();
+        DrawSettings();
+        EditorGUILayout.Space(8);
+
+        // FILTERS
+        CoreEditorUtils.DrawSplitter();
+        DrawFilters();
+        EditorGUILayout.Space(8);
+
+        // MESH MODIFIERS
+        CoreEditorUtils.DrawSplitter();
+        DrawMeshModifiers();
+        EditorGUILayout.Space(8);
+
+        // GAMEOBJECT MODIFIERS
+        CoreEditorUtils.DrawSplitter();
+        DrawGameObjectModifiers();
+
+        EditorGUILayout.Space(10);
+    }
+
+    private void DrawHeader()
+    {
+        var nameProperty = serializedObject.FindProperty("m_Name");
         EditorGUILayout.LabelField(nameProperty.stringValue, EditorStyles.whiteLargeLabel);
-        
-        if(_filterEditor == null) 
+        EditorGUILayout.Space(5);
+    }
+
+    private void DrawSettings()
+    {
+        EditorGUILayout.LabelField("Settings", EditorStyles.boldLabel);
+        EditorGUI.BeginChangeCheck();
+        EditorGUILayout.PropertyField(m_Settings);
+        if (EditorGUI.EndChangeCheck())
+            serializedObject.ApplyModifiedProperties();
+    }
+
+    private void DrawFilters()
+    {
+        if (_filterEditor == null)
             _filterEditor = CreateEditor(m_FilterStack.objectReferenceValue);
+
         if (_filterEditor != null)
         {
-            EditorGUILayout.Space();
-            CoreEditorUtils.DrawSplitter();
-            EditorGUILayout.Space();
-            CoreEditorUtils.DrawSplitter();
-            EditorGUILayout.Space();
-
-            EditorGUI.BeginChangeCheck();
-            EditorGUILayout.PropertyField(m_MergeObjects);
-            if (EditorGUI.EndChangeCheck())
+            EditorGUILayout.LabelField("Filters", EditorStyles.boldLabel);
+            using (new EditorGUILayout.VerticalScope(EditorStyles.helpBox))
             {
-                serializedObject.ApplyModifiedProperties();
-            }
-            
-            EditorGUILayout.LabelField("Filters");
-            {
-                CoreEditorUtils.DrawSplitter();
+                EditorGUI.indentLevel++;
                 _filterEditor.OnInspectorGUI();
-                
+                EditorGUI.indentLevel--;
             }
         }
-        EditorGUILayout.Space();
-        CoreEditorUtils.DrawSplitter();
-        EditorGUILayout.Space();
-        CoreEditorUtils.DrawSplitter();
-        EditorGUILayout.Space();
-        EditorGUILayout.LabelField("Mesh Modifiers");
+    }
+
+    private void DrawMeshModifiers()
+    {
+        EditorGUILayout.LabelField("Mesh Modifiers", EditorStyles.boldLabel);
+        using (new EditorGUILayout.VerticalScope(EditorStyles.helpBox))
         {
             DrawMeshModifiers(m_MeshModifiers, typeof(ScriptableMeshModifierObject));
         }
+    }
 
-        EditorGUILayout.Space();
-        CoreEditorUtils.DrawSplitter();
-        EditorGUILayout.Space();
-        CoreEditorUtils.DrawSplitter();
-        EditorGUILayout.Space();
-        
-        EditorGUILayout.LabelField("Gameobject Modifiers");
+    private void DrawGameObjectModifiers()
+    {
+        EditorGUILayout.LabelField("GameObject Modifiers", EditorStyles.boldLabel);
+        using (new EditorGUILayout.VerticalScope(EditorStyles.helpBox))
         {
             DrawMeshModifiers(m_GoModifiers, typeof(ScriptableGameObjectModifierObject));
         }
-        EditorGUILayout.Space();
-        CoreEditorUtils.DrawSplitter();
-
     }
-    
-    private void DrawMeshModifiers(SerializedProperty property, Type type)
+
+    private void DrawMeshModifiers(SerializedProperty property, System.Type type)
     {
+        if (property == null)
+        {
+            EditorGUILayout.HelpBox("Modifiers property is missing.", MessageType.Warning);
+            return;
+        }
+
         try
         {
             if (property.arraySize == 0)
@@ -136,34 +165,51 @@ public class ModifierStackEditor : Editor
             }
             else
             {
-                //Draw List
-                CoreEditorUtils.DrawSplitter();
+                // Draw each element inside its own subtle box so it sits nicely
                 for (int i = 0; i < property.arraySize; i++)
                 {
-                    SerializedProperty renderFeaturesProperty = property.GetArrayElementAtIndex(i);
-                    DrawModifier(property, i, ref renderFeaturesProperty);
-                    CoreEditorUtils.DrawSplitter();
+                    SerializedProperty elementProp = property.GetArrayElementAtIndex(i);
+
+                    // Each modifier gets a small framed area so it reads well inside the parent helpBox
+                    using (new EditorGUILayout.VerticalScope(EditorStyles.helpBox))
+                    {
+                        EditorGUI.indentLevel++;
+                        // Draw the modifier - keep existing behaviour, but pass the element
+                        // Assuming DrawModifier(SerializedProperty listProperty, int index, ref SerializedProperty elementProperty) exists
+                        DrawModifier(property, i, ref elementProp);
+                        EditorGUI.indentLevel--;
+                    }
+
+                    EditorGUILayout.Space(4);
                 }
             }
         }
-        catch (Exception e)
+        catch (System.Exception ex)
         {
-            
+            Debug.LogException(ex);
+            EditorGUILayout.HelpBox($"Error drawing modifiers: {ex.Message}", MessageType.Error);
         }
 
-        EditorGUILayout.Space();
-        EditorGUILayout.BeginHorizontal();
-        if (GUILayout.Button("Add Modifier", (GUIStyle)"minibuttonleft"))
+        // Add / Open buttons aligned neatly
+        EditorGUILayout.Space(4);
+        using (new EditorGUILayout.HorizontalScope())
         {
-            AddPassMenu(property, type);
+            if (GUILayout.Button("Add Modifier", (GUIStyle)"minibuttonleft"))
+            {
+                AddPassMenu(property, type);
+            }
+
+            // small spacer so the magnifier sits to the right
+            GUILayout.FlexibleSpace();
+
+            if (GUILayout.Button(_magnifier, (GUIStyle)"minibuttonright", GUILayout.Width(30)))
+            {
+                ScriptableCreatorWindow.Open(type, property);
+            }
         }
-        if (GUILayout.Button(_magnifier, (GUIStyle)"minibuttonright", GUILayout.Width(30)))
-        {
-            ScriptableCreatorWindow.Open(type, property);
-        }
-        EditorGUILayout.EndHorizontal();
     }
-    
+
+
     private void AddPassMenu(SerializedProperty property, Type modType)
     {
         GenericMenu menu = new GenericMenu();
@@ -215,56 +261,89 @@ public class ModifierStackEditor : Editor
     }
 
     private void DrawModifier(SerializedProperty property, int index, ref SerializedProperty renderFeatureProperty)
+{
+    Object modifierObjRef = renderFeatureProperty.objectReferenceValue;
+
+    if (modifierObjRef != null)
     {
-        Object modifierObjRef = renderFeatureProperty.objectReferenceValue;
-        if (modifierObjRef != null)
+        bool hasChangedProperties = false;
+        string title = ObjectNames.GetInspectorTitle(modifierObjRef);
+
+        // Ensure the editor list has an editor for this modifier
+        if (m_Editors.TryGetValue(property, out var editors))
         {
-            bool hasChangedProperties = false;
-            string title = ObjectNames.GetInspectorTitle(modifierObjRef);
+            while (editors.Count <= index)
+                editors.Add(null);
 
-            // Get the serialized object for the editor script & update it
-            UnityEditor.Editor modifierEditor = m_Editors[property][index];
-            SerializedObject serializedModifierEditor = modifierEditor.serializedObject;
-            serializedModifierEditor.Update();
+            if (editors[index] == null || editors[index].target != modifierObjRef)
+                editors[index] = CreateEditor(modifierObjRef);
+        }
 
-            // Foldout header
-            EditorGUI.BeginChangeCheck();
-            SerializedProperty activeProperty = serializedModifierEditor.FindProperty("m_Active");
-            bool displayContent = CoreEditorUtils.DrawHeaderToggle(title, renderFeatureProperty, activeProperty, pos => OnContextClick(property, pos, index));
-            hasChangedProperties |= EditorGUI.EndChangeCheck();
+        UnityEditor.Editor modifierEditor = m_Editors[property][index];
+        if (modifierEditor == null)
+        {
+            EditorGUILayout.HelpBox("Missing modifier editor.", MessageType.Warning);
+            return;
+        }
 
-            // ObjectEditor
-            if (displayContent)
+        // Update serialized object
+        SerializedObject serializedModifierEditor = modifierEditor.serializedObject;
+        serializedModifierEditor.Update();
+
+        // Header foldout
+        EditorGUI.BeginChangeCheck();
+        SerializedProperty activeProperty = serializedModifierEditor.FindProperty("m_Active");
+        bool displayContent = CoreEditorUtils.DrawHeaderToggle(
+            title,
+            renderFeatureProperty,
+            activeProperty,
+            pos => OnContextClick(property, pos, index)
+        );
+        hasChangedProperties |= EditorGUI.EndChangeCheck();
+
+        // Draw inside framed box when expanded
+        if (displayContent)
+        {
+            using (new EditorGUILayout.VerticalScope(EditorStyles.helpBox))
             {
-                EditorGUILayout.Space();
-                
-                //if (AssetDatabase.IsMainAsset(modifierObjRef))
-                {
-                    EditorGUILayout.ObjectField(renderFeatureProperty);
-                }
+                EditorGUILayout.Space(2);
+
+                // Reference field
+                EditorGUILayout.ObjectField("Modifier Asset", renderFeatureProperty.objectReferenceValue, typeof(Object), false);
+
+                EditorGUILayout.Space(4);
 
                 EditorGUI.BeginChangeCheck();
                 modifierEditor.OnInspectorGUI();
                 hasChangedProperties |= EditorGUI.EndChangeCheck();
 
-                EditorGUILayout.Space(EditorGUIUtility.singleLineHeight);
+                EditorGUILayout.Space(4);
             }
 
-            // Apply changes and save if the user has modified any settings
-            if (hasChangedProperties)
-            {
-                serializedModifierEditor.ApplyModifiedProperties();
-                serializedObject.ApplyModifiedProperties();
-                ForceSave();
-            }
+            EditorGUILayout.Space(4);
         }
-        else
+
+        // Apply & save changes
+        if (hasChangedProperties)
         {
-            CoreEditorUtils.DrawHeaderToggle(new GUIContent("Missing Modifier"), renderFeatureProperty, m_FalseBool,
-                pos => OnContextClick(property, pos, index));
-            m_FalseBool.boolValue = false; // always make sure false bool is false
+            serializedModifierEditor.ApplyModifiedProperties();
+            serializedObject.ApplyModifiedProperties();
+            ForceSave();
         }
     }
+    else
+    {
+        // Missing modifier handling
+        CoreEditorUtils.DrawHeaderToggle(
+            new GUIContent("Missing Modifier"),
+            renderFeatureProperty,
+            m_FalseBool,
+            pos => OnContextClick(property, pos, index)
+        );
+        m_FalseBool.boolValue = false;
+    }
+}
+
     private void OnContextClick(SerializedProperty property, Vector2 position, int id)
     {
         var menu = new GenericMenu();
