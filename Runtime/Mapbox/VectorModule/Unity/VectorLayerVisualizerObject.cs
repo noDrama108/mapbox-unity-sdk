@@ -29,6 +29,7 @@ namespace Mapbox.VectorModule.Unity
 			_layerVisualizer = LayerType is LayerTypeEnum.Polygon or LayerTypeEnum.Line
 				? new VectorLayerVisualizer(VectorLayerName, mapInformation, unityContext, _settings)
 				: new PointLayerVisualizer(_vectorLayerName, mapInformation, unityContext, _settings);
+			_layerVisualizer.Active = true;
 			
 			foreach (var modifierStackObject in _modifierStackObjects.Where(x => x != null))
 			{

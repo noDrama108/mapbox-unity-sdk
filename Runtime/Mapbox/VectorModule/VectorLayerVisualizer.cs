@@ -66,17 +66,25 @@ namespace Mapbox.VectorModule
             }
         }
 
-        public void SetActive(CanonicalTileId canonicalTileId, bool isActive, IMapInformation mapInformation)
+        public virtual void SetActive(CanonicalTileId canonicalTileId, bool isActive, IMapInformation mapInformation)
         {
-            if (_results.TryGetValue(canonicalTileId, out var visuals))
+            if (isActive)
             {
-                foreach (var entity in visuals)
+                if (_results.TryGetValue(canonicalTileId, out var visuals))
                 {
-                    if (_stackList.TryGetValue(entity.StackId, out var stack))
+                    foreach (var entity in visuals)
                     {
-                        entity.GameObject.SetActive(isActive && stack.IsZinSupportedRange(_mapInformation.AbsoluteZoom));
+                        if (_stackList.TryGetValue(entity.StackId, out var stack))
+                        {
+                            var isVisible = stack.IsZinSupportedRange(_mapInformation.AbsoluteZoom);
+                            entity.GameObject.SetActive(isVisible);
+                        }
                     }
                 }
+            }
+            else
+            {
+                UnregisterTile(canonicalTileId);
             }
         }
         
@@ -135,6 +143,7 @@ namespace Mapbox.VectorModule
                     OnVectorMeshDestroyed(entity.GameObject);
                 }
 
+                _results[tileId].Clear();
                 _results.Remove(tileId);
             }
 

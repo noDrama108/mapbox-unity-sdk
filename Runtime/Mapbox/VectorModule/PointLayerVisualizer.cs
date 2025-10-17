@@ -28,5 +28,33 @@ namespace Mapbox.VectorModule
                 }
             }
         }
+
+        // public override void SetActive(CanonicalTileId canonicalTileId, bool isActive, IMapInformation mapInformation)
+        // {
+        //     if (_results.TryGetValue(canonicalTileId, out var visuals))
+        //     {
+        //         if (!isActive)
+        //         {
+        //             foreach (var entity in visuals)
+        //             {
+        //                 _stackList[entity.StackId].Finalize(entity);
+        //             }
+        //
+        //             visuals.Clear();
+        //             _results.Remove(canonicalTileId);
+        //         }
+        //         else
+        //         {
+        //             foreach (var entity in visuals)
+        //             {
+        //                 if (_stackList.TryGetValue(entity.StackId, out var stack))
+        //                 {
+        //                     var isVisible = isActive && stack.IsZinSupportedRange(_mapInformation.AbsoluteZoom);
+        //                     entity.GameObject.SetActive(isVisible);
+        //                 }
+        //             }
+        //         }
+        //     }
+        // }
     }
 }
