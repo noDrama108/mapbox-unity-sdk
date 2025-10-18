@@ -123,7 +123,7 @@ namespace Mapbox.BaseModuleTests
             _cacheManager = new MapboxCacheManager(unityContext, new MemoryCache(), _fileCache, _sqliteCache);
             _fetchingManager = new LoggingDataFetchingManager(mapboxContext.GetAccessToken(), mapboxContext.GetSkuToken);
             _imageSource = new StaticSource(_fetchingManager, _cacheManager,
-                new ImageSourceSettings() { TilesetId = _testTilesetName, UseNonReadableTextures = false, CacheSize = 0});
+                new ImageSourceSettings() { TilesetId = _testTilesetName, UseNonReadableTextures = false});
             _imageSource.Initialize();
         }
 

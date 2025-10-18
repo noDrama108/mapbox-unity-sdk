@@ -56,7 +56,7 @@ namespace Mapbox.BaseModuleTests
                 new LoggingDataFetchingManager(mapboxContext.GetAccessToken(), mapboxContext.GetSkuToken);
             _terrainSource = new TerrainSource(_fetchingManager, _cacheManager,
                 new ImageSourceSettings()
-                    { TilesetId = _testTilesetName, UseNonReadableTextures = false, CacheSize = 0 });
+                    { TilesetId = _testTilesetName, UseNonReadableTextures = false });
             _terrainSource.Initialize();
         }
 
