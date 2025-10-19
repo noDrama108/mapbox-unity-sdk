@@ -1,48 +1,48 @@
-## Working with layer modules
+## Layer module basics
 
+Layer modules are core systems that correspond to Mapbox API endpoints such as the Static API, Terrain API, and Vector API.  
+They are orchestrated by the map object, which requests, processes, and visualizes data from these modules to build and decorate the map.  
+Four main components are important in this context: (1) the base map system, (2) the Static API layer module, (3) the Terrain layer module, and (4) the Vector layer module.
 
-Layer modules are main systems corresponding to Mapbox api endpoints, like static api, terrain api and vector api.
-Orchestrated by the map object; they request, process and visualize data to decorate the map.
-Three main elements important in this section are (1) base map system, (2) static api layer module, (3) terrain layer module and (4) vector module.
+### Creating the base map
+To use modules and generate a visual map, we first need a base map system.  
+Start by creating a GameObject with the `MapboxMapBehaviour` script attached. The script usually includes default settings, but if it doesn’t (especially in earlier SDK versions), you can set the following basic values manually:
 
-### creating the base map
-To be able to use modules and create a map visual, we’ll first need a base map system.
-We'll need a gameobject with MapboxMapBehaviour script attached. Script should come with a few default settings but if it doesn't (in earlier versions of the SDK), change some basic values as follows;
-Pitch: 90, Scale: 1, Zoom: 16, Latitude Longitude: Any location you want
+- Pitch: 90  
+- Scale: 1  
+- Zoom: 16  
+- Latitude/Longitude: any location you prefer  
 
-If you run the application now, only with this base map script, you should see a bunch of empty tiles with various sizes created in the scene.
+Running the application now with only this base map script will display empty tiles of various sizes created in the scene.
 
-Now that we have a map, we can add modules to decorate it. this base map script will look for any layer module scripts on the same gameobject as itself and add them to its update cycle. 
+Once the map exists, you can add modules to decorate it. The base map script automatically searches for any layer module scripts attached to the same GameObject and includes them in its update cycle.
 
 ![Base map script output](Images/WorkingWithModulesBaseMap.png)
 
-### Static Api Layer Module
-Static Api Layer module, as the name suggests, utilizes the [Mapbox Static Images Api](https://docs.mapbox.com/api/maps/static-images/) which serves server-side created images of requested region to clients.
+### Static API Layer Module
+The Static API layer module uses the [Mapbox Static Images API](https://docs.mapbox.com/api/maps/static-images/), which serves pre-rendered images of requested regions.  
+This module downloads and applies the appropriate images to the map tiles. By default, these textures are rendered using a custom shader and material setup.
 
-Static api layer module will request and download images necessary to fill up the requested area. Then these images will be passed to tile materials, which by default are using a custom shader and texture fields, to render it on the mesh.
-
-If tile material and shader is changed (via the optional tile creator script), static api layer module will not be able to find the relevant shader field and images might not be applied as intended.
+If the tile material or shader is changed (for example, through a custom tile creator script), the Static API layer module may not find the correct texture fields, and images may not display as expected.
 
 ![Static api layer module output](Images/WorkingWithModulesStaticApi.png)
 
-
 ### Terrain Layer Module
-Terrain layer module utilizes the [Mapbox Terrain-Rgb api](https://docs.mapbox.com/data/tilesets/reference/mapbox-terrain-rgb-v1/) which serves pre-generated global elevation data encoded in PNG files as color values.
+The Terrain layer module uses the [Mapbox Terrain-RGB API](https://docs.mapbox.com/data/tilesets/reference/mapbox-terrain-rgb-v1/), which provides global elevation data encoded as color values in PNG files.  
+The module downloads elevation tiles for the current map view and either passes them to the material for GPU-side elevation generation or processes them on the CPU to build a 3D mesh. Each method has its advantages and tradeoffs.
 
-Terrain layer module will request and download images necessary to create a terrain for current map view. These images then either passed directly to material to generate elevation on GPU-side or processed on CPU-side to create a 3d mesh of the area. Both options has advantages and disadvantages of their own.
+Currently, the Terrain layer module supports only the `rgb v1` API, with `dem v1` support planned for the future.
 
-Terrain layer module only supports the `rgb v1` api at the moment and support for `dem v1` will be added in the future.
-
-Similar to static api layer module, terrain module (in shader elevation mode) also relies on a specific terrain material and shader to work as intended.
+As with the Static API module, the Terrain module (in shader-based elevation mode) depends on a specific terrain material and shader setup.
 
 ![Static api with terrain output](Images/WorkingWithModulesTerrain.png)
 
-
 ### Vector Module
-Vector module utilizes the [Mapbox Vector Tiles api](https://docs.mapbox.com/api/maps/vector-tiles/) which serves vector tiles. `Street V8` is the main dataset this module targets and you can find the details on its data and how it’s structured in [Mapbox Streets v8 documentation](https://docs.mapbox.com/data/tilesets/reference/mapbox-streets-v8/).
+The Vector module uses the [Mapbox Vector Tiles API](https://docs.mapbox.com/api/maps/vector-tiles/), which delivers vector-based map data.  
+The main dataset it targets is `Streets V8`, and you can find more details about its structure in the [Mapbox Streets v8 documentation](https://docs.mapbox.com/data/tilesets/reference/mapbox-streets-v8/).
 
-Vector layer module will download raw vector data and through the "layer visualizer" scripts (submodules), it creates visuals. Most common example of this is the 3d buildings (extruded polygons).
-
-Vector layer module request, decompress and ready the data but doesn’t process or create visuals by itself. It’ll only produce visual results once submodules called `Layer Visualizer` are added. You can find example visualizers in the samples included into the package.
+This module downloads and decompresses vector data but does not render visuals on its own.  
+Visualization happens through submodules called “Layer Visualizers,” which generate actual map features such as 3D buildings (extruded polygons).  
+You can find sample visualizers included with the SDK package.
 
 ![Vector module output](Images/WorkingWithModulesVector.png)
