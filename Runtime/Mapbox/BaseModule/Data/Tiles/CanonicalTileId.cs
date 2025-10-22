@@ -25,9 +25,6 @@ namespace Mapbox.BaseModule.Data.Tiles
 		/// <summary> The Y coordinate in the tile grid. </summary>
 		public int Y;
 
-		private string _stringCache;
-		private string _fileNameStringCache;
-
 		/// <summary>
 		///     Initializes a new instance of the <see cref="CanonicalTileId"/> struct,
 		///     representing a tile coordinate in a slippy map.
@@ -40,8 +37,6 @@ namespace Mapbox.BaseModule.Data.Tiles
 			this.Z = z;
 			this.X = x;
 			this.Y = y;
-			_stringCache = "";
-			_fileNameStringCache = "";
 		}
 
 		internal CanonicalTileId(UnwrappedTileId unwrapped)
@@ -55,9 +50,6 @@ namespace Mapbox.BaseModule.Data.Tiles
 			this.Z = z;
 			this.X = x - wrap * (1 << z);
 			this.Y = y < 0 ? 0 : Math.Min(y, (1 << z) - 1);
-
-			_stringCache = "";
-			_fileNameStringCache = "";
 		}
 
 		public static CanonicalTileId FromUnwrappedValues(int z, int x, int y)
@@ -91,22 +83,7 @@ namespace Mapbox.BaseModule.Data.Tiles
 		/// </returns>
 		public override string ToString()
 		{
-			if(string.IsNullOrEmpty(_stringCache))
-			{
-				_stringCache = string.Format("{0}/{1}/{2}", this.Z, this.X, this.Y);
-			}
-
-			return _stringCache;
-		}
-
-		public string ToFileSafeString()
-		{
-			if (string.IsNullOrEmpty(_fileNameStringCache))
-			{
-				_fileNameStringCache = string.Format("{0}_{1}_{2}", this.Z, this.X, this.Y);
-			}
-
-			return _fileNameStringCache;
+			return string.Format("{0}/{1}/{2}", this.Z, this.X, this.Y);
 		}
 
 		public CanonicalTileId GetParentTileId
@@ -122,9 +99,6 @@ namespace Mapbox.BaseModule.Data.Tiles
 			this.Z = this.Z - 1;
 			this.X = this.X >> 1;
 			this.Y = this.Y >> 1;
-			
-			_stringCache = "";
-			_fileNameStringCache = "";
 		}
 
 		#region Equality 
