@@ -43,7 +43,7 @@ namespace Mapbox.ImageModule
 			var parentTileId = unityTile.CanonicalTileId;
 			for (int i = unityTile.CanonicalTileId.Z; i >= 2; i--)
 			{
-				parentTileId = parentTileId.Parent;
+				parentTileId.MoveToParent();
 				if (_rasterSource.GetInstantData(parentTileId, out var instantData))
 				{
 					unityTile.ImageContainer.SetImageData(instantData, TileContainerState.Temporary);

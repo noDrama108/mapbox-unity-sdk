@@ -269,7 +269,7 @@ namespace Mapbox.VectorModule
 					
 					for (int i = targetId.Z; i >= _vectorModuleSettings.RejectTilesOutsideZoom.x; i--)
 					{
-						targetId = targetId.Parent;
+						targetId.MoveToParent();
 						if (_readyTiles.Contains(targetId))
 						{
 							_retainedTiles.Add(targetId);

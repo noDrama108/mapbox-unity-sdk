@@ -50,7 +50,7 @@ namespace Mapbox.ImageModule.Terrain
             var parentTileId = targetTileId;
             for (int i = parentTileId.Z; i >= 2; i--)
             {
-                parentTileId = parentTileId.Parent;
+                parentTileId.MoveToParent();
                 if (_rasterSource.GetInstantData(parentTileId, out var instantData)  && instantData.IsElevationDataReady)
                 {
                     unityTile.TerrainContainer.SetTerrainData(instantData, _settings.UseShaderTerrain, TileContainerState.Temporary);
@@ -102,7 +102,7 @@ namespace Mapbox.ImageModule.Terrain
                 {
                     return instantData.QueryHeightData(originalTileId, x, y);
                 }
-                targetTileId = targetTileId.Parent;
+                targetTileId.MoveToParent();
             }
             
             return 0;

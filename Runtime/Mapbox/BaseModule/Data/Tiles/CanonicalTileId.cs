@@ -109,12 +109,22 @@ namespace Mapbox.BaseModule.Data.Tiles
 			return _fileNameStringCache;
 		}
 
-		public CanonicalTileId Parent
+		public CanonicalTileId GetParentTileId
 		{
 			get
 			{
 				return new CanonicalTileId(Z - 1, X >> 1, Y >> 1);
 			}
+		}
+		
+		public void MoveToParent()
+		{
+			this.Z = this.Z - 1;
+			this.X = this.X >> 1;
+			this.Y = this.Y >> 1;
+			
+			_stringCache = "";
+			_fileNameStringCache = "";
 		}
 
 		#region Equality 
@@ -167,13 +177,12 @@ namespace Mapbox.BaseModule.Data.Tiles
 			}
 
 			var delta = Z - i; //zoom level diff
-			var parent = this;
 			for (int j = 0; j < delta; j++)
 			{
-				parent = parent.Parent;
+				MoveToParent();
 			}
 
-			return parent;
+			return this;
 		}
 		
 		public bool IsParentOf(CanonicalTileId canonicalTileId)
@@ -192,7 +201,7 @@ namespace Mapbox.BaseModule.Data.Tiles
 			var offsetX = 0f;
 			var offsetY = 0f;
 
-			var currentParent = current.Parent;
+			var currentParent = current.GetParentTileId;
 
 			for (int i = tileZoom - 1; i >= zoomDiff; i--)
 			{
@@ -227,7 +236,7 @@ namespace Mapbox.BaseModule.Data.Tiles
 				}
 
 				current = currentParent;
-				currentParent = currentParent.Parent;
+				currentParent.MoveToParent();
 			}
 
 			return new Vector4(scale, scale, offsetX, offsetY);
@@ -241,7 +250,7 @@ namespace Mapbox.BaseModule.Data.Tiles
 			var offsetX = 0f;
 			var offsetY = 0f;
 
-			var currentParent = current.Parent;
+			var currentParent = current.GetParentTileId;
 
 			for (int i = tileZoom - 1; i >= zoomDiff; i--)
 			{
@@ -278,7 +287,7 @@ namespace Mapbox.BaseModule.Data.Tiles
 				}
 
 				current = currentParent;
-				currentParent = currentParent.Parent;
+				currentParent.MoveToParent();
 			}
 
 			return new Vector4(scale, scale, offsetX, offsetY);
