@@ -62,39 +62,29 @@ However, you can change this behavior — for example, to manually control when 
 
 ---
 
-## Accessing the Map Object in Your Own Scripts
+## Creating a Basic Map Setup
 
-If you want to use the map object in your own code (for example, to query tiles, add layers, or respond to map events), the recommended approach is to:
+To create a basic map in your own Unity scene, follow these simple steps:
 
-1. Reference the `MapBehaviourCore` component in your script.  
-2. Subscribe to its `Initialized` event.  
-3. Store the resulting `MapboxMap` instance when it becomes available.
+1. Create a new GameObject and add the `MapboxMapBehaviour` script.  
+   This script is the core of the map system—it represents the map itself. However, it does not include any default visualization, so we’ll add a few modules to display it as desired.
 
-Here’s a simple example:
+2. Add a `StaticApiLayerModule` script to the same GameObject.  
+   The Static API module works with image data, downloading server-rendered map images and draping them over the terrain (flat or elevated).  
+   It includes several predefined style options, and you can also use your own custom styles created in Mapbox Studio.  
+   Without changing any settings, running the application should display a basic map.  
+   (Remember to adjust the Scene or Game view camera so the map is visible.)
 
-```csharp
-using UnityEngine;
-using Mapbox.Unity.Map;
+3. Add a `TerrainLayerModule` script to the same GameObject.  
+   The Terrain module also works with image data, but instead of draping it as imagery, it extracts elevation information and applies it to the base terrain mesh.  
+   Running the application again with default settings will display small elevation details and terrain variation.
 
-public class Test : MonoBehaviour
-{
-    public MapBehaviourCore MapCore;
-    private MapboxMap _map;
+4. Add a `VectorLayerModule` script to the same GameObject.  
+   The Vector module is different—it works with vector data rather than images.  
+   By default, it uses the Mapbox `Streets-v8` tileset, which you can read more about here: [Mapbox Streets V8 Documentation](https://docs.mapbox.com/data/tilesets/reference/mapbox-streets-v8/).  
+   Unlike other modules, the Vector module doesn’t create visuals on its own. If you run the map now, you won’t see any new features appear yet.  
+   The Vector module needs subcomponents called `Layer Visualizers` to turn data into visuals. You can think of these as “styles” that define how vector data appears.  
+   If you click the `+` button and add a `BuildingLayer` visualizer (available in the sample content), then run the application, you’ll see basic buildings appear on your map.
 
-    public void Awake()
-    {
-        MapCore.Initialized += (map) =>
-        {
-            _map = map;
-            Debug.Log("Map is initialized");
-        };
-    }
-}
-```
-
-## What This Does
-- The script listens for the map’s initialization event.  
-- When the map is ready, it assigns it to the private `_map` field.  
-- You can then safely use `_map` for all your map-related logic.
 
 ---
