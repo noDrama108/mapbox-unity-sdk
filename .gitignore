@@ -66,3 +66,4 @@ sdkproject/Assets/NextGenRecorder
 TextMesh Pro
 Library
 *.csproj
+Runtime/Mapbox/VectorModule/MeshGeneration/.idea
