@@ -317,7 +317,10 @@ namespace Mapbox.BaseModule.Map
             if (tileFinished)
             {
                 unityMapTile.IsTemporary = false;
-                ActiveTiles.TryAdd(unityMapTile.UnwrappedTileId, unityMapTile);
+                if (!ActiveTiles.ContainsKey(unityMapTile.UnwrappedTileId))
+                {
+                    ActiveTiles.Add(unityMapTile.UnwrappedTileId, unityMapTile);
+                }
                 TileLoaded(unityMapTile);
             }
 

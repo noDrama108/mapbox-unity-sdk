@@ -319,7 +319,8 @@ namespace Mapbox.VectorModule
 								OnVectorMeshCreated(tileId, result.GeneratedObjects);
 								UpdateForView(tileId, _mapInformation);
 								break;
-							case TaskResultType.DataProcessingFailure or TaskResultType.MeshGenerationFailure:
+							case TaskResultType.DataProcessingFailure:
+							case TaskResultType.MeshGenerationFailure:
 								_vectorSource.InvalidateData(vectorData.TileId);
 								Debug.Log(result.ExceptionsAsString);
 								break;

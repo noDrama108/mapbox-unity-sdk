@@ -26,7 +26,7 @@ namespace Mapbox.VectorModule.Unity
 		
 		public IVectorLayerVisualizer ConstructLayerVisualizer(IMapInformation mapInformation, UnityContext unityContext)
 		{
-			_layerVisualizer = LayerType is LayerTypeEnum.Polygon or LayerTypeEnum.Line
+			_layerVisualizer = (LayerType == LayerTypeEnum.Polygon) || (LayerType == LayerTypeEnum.Line)
 				? new VectorLayerVisualizer(VectorLayerName, mapInformation, unityContext, _settings)
 				: new PointLayerVisualizer(_vectorLayerName, mapInformation, unityContext, _settings);
 			_layerVisualizer.Active = true;

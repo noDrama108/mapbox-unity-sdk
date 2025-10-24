@@ -10,7 +10,7 @@ namespace Mapbox.BaseModule.Map
     {
         protected UnityContext _unityContext;
         protected MapboxContext _mapboxContext;
-        protected List<Source> _dataSources = new();
+        protected List<Source> _dataSources = new List<Source>();
         private bool _allSourcesReady = false;
 
         public virtual IFileSource FileSource => null;

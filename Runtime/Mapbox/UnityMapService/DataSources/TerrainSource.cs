@@ -20,9 +20,14 @@ namespace Mapbox.UnityMapService.DataSources
             : base(dataFetchingManager, mapboxCacheManager, settings)
         {
             _settings = settings;
-            _elevationDataExtractionStrategy = SystemInfo.supportsAsyncGPUReadback
-                ? new AsyncExtractElevationArray()
-                : new SyncExtractElevationArray();
+            if (SystemInfo.supportsAsyncGPUReadback)
+            {
+                _elevationDataExtractionStrategy = new AsyncExtractElevationArray();
+            }
+            else
+            {
+                _elevationDataExtractionStrategy = new SyncExtractElevationArray(); 
+            }
         }
         
         public override void DownloadAndCacheBaseTiles()

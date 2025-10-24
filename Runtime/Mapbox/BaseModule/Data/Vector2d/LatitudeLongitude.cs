@@ -6,7 +6,7 @@ namespace Mapbox.BaseModule.Data.Vector2d
     [Serializable]
     public struct LatitudeLongitude
     {
-        public static LatitudeLongitude Invalid => new(MAX_LATITUDE * 2, MAX_LONGITUDE * 2);
+        public static LatitudeLongitude Invalid => new LatitudeLongitude(MAX_LATITUDE * 2, MAX_LONGITUDE * 2);
         public static bool operator ==(in LatitudeLongitude a, in LatitudeLongitude b) => a.Equals(in b);
         public static bool operator !=(in LatitudeLongitude a, in LatitudeLongitude b) => !a.Equals(in b);
 		
