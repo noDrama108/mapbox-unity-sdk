@@ -22,6 +22,7 @@ Bug fixes, performance improvements, vector module changes, and core library upd
 - Improved the UI and debugging tools of `LoggingDataFetchingManagerBehaviour` and `LoggingCacheManagerBehaviour` scripts.
 - Enhanced the inspector UI for `LayerModifier` and introduced the new `TagModifier` GameObject modifier.
 - Moved the LatitudeLongitude struct to its own file and added proper equality methods.
+- Replace C# 9.0 syntax with C# 7.0 syntax for better backward compatibility.
 
 #### Documentation
 - Added new starter guides:
