@@ -98,7 +98,6 @@ public class MapTest : MonoBehaviour
         var vectorTileset = MapboxDefaultVector.GetParameters(VectorSourceType.MapboxStreetsV8);
 
         var terrainSettings = new TerrainLayerModuleSettings();
-        terrainSettings.ElevationLayerType = ElevationLayerType.TerrainWithElevation;
         terrainSettings.DataSettings = new ImageSourceSettings()
         {
             TilesetId = terrainTileset.Id,

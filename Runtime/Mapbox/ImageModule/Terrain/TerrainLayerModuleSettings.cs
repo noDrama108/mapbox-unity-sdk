@@ -9,7 +9,6 @@ namespace Mapbox.ImageModule.Terrain
     [Serializable]
     public class TerrainLayerModuleSettings
     {
-        public ElevationLayerType ElevationLayerType = ElevationLayerType.TerrainWithElevation;
         [NonSerialized] public ElevationSourceType SourceType = ElevationSourceType.MapboxTerrain;
         public bool LoadBackgroundTextures = false;
         public bool UseShaderTerrain = true;
