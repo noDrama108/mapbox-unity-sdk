@@ -1,5 +1,26 @@
 ## CHANGELOG
 
+### v3.0.6
+
+#### Fixes
+- Fixed the Prefab Modifier to correctly scale generated objects to fit world size, depending on a setting.
+- Fixed Height and Chamfer Height modifiers to consider the current location’s latitude when calculating building height.
+- Fixed Line Mesh Modifier to scale line width according to map scale and latitude.
+- Fixed a bug in the Prefab Modifier that blocked mesh generation when no prefab was assigned.
+
+#### Changes
+- Moved the `Layer Type` setting from the Layer Visualizer to the Modifier Stack to better support multiple stacks per visualizer.
+- Added `MapInformation.GetLatitudeCompensationForLocation`, a method for getting more realistic distance estimates from Mercator units.
+- Added `Conversions.TileEdgeSizeInMercator`, a simpler helper method for scale-related calculations.
+- Improved the inspector UI for the Height and Chamfer Height modifiers.
+- Updated filters:
+  - Removed the Feature Data filter.
+  - Introduced a Geometry Type filter.
+  - Refined String and Number Property filters for better usability.
+- Removed the Point Layer Visualizer, which became unnecessary after the structural changes above.
+- Removed the Terrain Type setting, as it now only had a single valid option after recent updates.
+
+
 ### v3.0.5
 Bug fixes, performance improvements, vector module changes, and core library updates for Android 16KB page size compatibility.
 
