@@ -37,6 +37,9 @@ namespace Mapbox.VectorModule.MeshGeneration.GameObjectModifiers
 		
 		public override void Run(VectorEntity ve, IMapInformation mapInformation)
 		{
+			if (_settings.Prefab == null)
+				return;
+			
 			var tileSize = Conversions.TileEdgeSizeInMercator(ve.Feature.TileId);
 			//we first move position to (0-1) range, then scale it up to tile size
 			var met = (ve.Feature.Points[0][0] / mapInformation.Scale) * tileSize;
