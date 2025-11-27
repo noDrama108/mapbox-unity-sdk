@@ -8,7 +8,6 @@ using System;
 using Mapbox.BaseModule.Data.Vector2d;
 using Mapbox.BaseModule.Utilities.JsonConverters;
 using Newtonsoft.Json;
-using UnityEngine.Scripting;
 
 namespace Mapbox.DirectionsApi.Response
 {

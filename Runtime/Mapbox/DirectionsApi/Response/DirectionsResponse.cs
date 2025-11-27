@@ -7,8 +7,6 @@
 using System;
 using System.Collections.Generic;
 using Newtonsoft.Json;
-using Unity.Properties;
-using UnityEngine.Scripting;
 
 namespace Mapbox.DirectionsApi.Response
 {

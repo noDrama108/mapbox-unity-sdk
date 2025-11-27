@@ -8,17 +8,12 @@ using Mapbox.BaseModule.Data;
 using Mapbox.BaseModule.Data.Vector2d;
 using Mapbox.BaseModule.Utilities.JsonConverters;
 using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
 
 namespace Mapbox.GeocodingApi
 {
-    using System;
-    using System.Collections.Generic;
-
-    /// <summary> A GeoJSON FeatureCollection of points returned by geocoding API.</summary>
-#if !WINDOWS_UWP
-    //http://stackoverflow.com/a/12903628
     [Serializable]
-#endif
 	public class Feature {
 		/// <summary> Gets or sets the id. Ids are unique in the Mapbox geocoder. </summary>
 		/// <value>The id.</value>
