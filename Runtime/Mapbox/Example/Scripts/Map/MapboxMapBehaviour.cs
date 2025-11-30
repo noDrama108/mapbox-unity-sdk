@@ -55,6 +55,12 @@ namespace Mapbox.Example.Scripts.Map
             StartCoroutine(MapboxMap.Initialize());
         }
 
+        [ContextMenu("Force Update Map")]
+        public void ForceUpdateMap()
+        {
+            MapboxMap.ForceRedraw();
+        }
+
         private void InitializationCompleted()
         {
             Initialized(MapboxMap);

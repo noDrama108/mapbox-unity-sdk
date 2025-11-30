@@ -14,6 +14,7 @@ namespace Mapbox.Example.Scripts.Editor
         private SerializedProperty _tileProviderProp;
         private SerializedProperty _dataFetcherProp;
         private SerializedProperty _cacheManagerProp;
+        private SerializedProperty _initializeOnStart;
 
         private GUIStyle _headerStyle;
         private GUIStyle _boxStyle;
@@ -29,6 +30,7 @@ namespace Mapbox.Example.Scripts.Editor
             _tileProviderProp  = serializedObject.FindProperty("TileProvider");
             _dataFetcherProp   = serializedObject.FindProperty("DataFetcher");
             _cacheManagerProp  = serializedObject.FindProperty("CacheManager");
+            _initializeOnStart  = serializedObject.FindProperty("InitializeOnStart");
         }
 
         public override void OnInspectorGUI()
@@ -80,6 +82,16 @@ namespace Mapbox.Example.Scripts.Editor
                     {
                         EditorGUILayout.HelpBox("Drag & drop your script components here.", MessageType.Info);
                     }
+                }
+            }
+            
+            EditorGUILayout.Space(8);
+            using (new EditorGUILayout.VerticalScope(_boxStyle))
+            {
+                _overrideModulesFold = EditorGUILayout.Foldout(_overrideModulesFold, "Settings");
+                if (!_overrideModulesFold)
+                {
+                    EditorGUILayout.PropertyField(_initializeOnStart, new GUIContent("Initialize On Start"));
                 }
             }
 
