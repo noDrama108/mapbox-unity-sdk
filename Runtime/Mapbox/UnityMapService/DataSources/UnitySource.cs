@@ -165,10 +165,10 @@ namespace Mapbox.UnityMapService.DataSources
             return _cacheManager.RegisterMemoryCache<T1>(owner, cacheSize);
         }
 
-        public override bool IsZinSupportedRange(int z)
-        {
-            return z >= _sourceZoomRange[0] && z <= _sourceZoomRange[1];
-        }
+        // public override bool IsZinSupportedRange(int z)
+        // {
+        //     return z >= _sourceZoomRange[0] && z <= _sourceZoomRange[1];
+        // }
         
         private void TrackTask(TaskWrapper task)
         {

@@ -56,8 +56,6 @@ namespace Mapbox.UnityMapService.DataSources
         {
             foreach (var id in retainedTiles)
             {
-                if (!IsZinSupportedRange(id.Z)) continue;
-                
                 if (!CheckInstantData(id))
                 {
                     LoadTile(id);

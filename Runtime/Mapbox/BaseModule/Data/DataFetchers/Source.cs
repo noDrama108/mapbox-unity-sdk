@@ -78,10 +78,10 @@ namespace Mapbox.BaseModule.Data.DataFetchers
 		//move this to imageSource after merging imagery&terrain modules
 		public virtual void DownloadAndCacheBaseTiles() { }
 		
-		public virtual bool IsZinSupportedRange(int z)
-		{
-			return false;
-		}
+		// public virtual bool IsZinSupportedRange(int z)
+		// {
+		// 	return false;
+		// }
 
 		public Action<CanonicalTileId> CacheItemDisposed = (t) => { };
 
