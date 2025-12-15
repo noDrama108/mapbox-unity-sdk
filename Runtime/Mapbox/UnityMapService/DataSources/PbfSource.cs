@@ -53,6 +53,8 @@ namespace Mapbox.UnityMapService.DataSources
         {
             foreach (var id in retainedTiles)
             {
+                if (CheckInstantData(id)) continue;
+                
                 LoadTileCore(id);
             }
 
