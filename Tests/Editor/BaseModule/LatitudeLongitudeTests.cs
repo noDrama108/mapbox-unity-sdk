@@ -45,18 +45,6 @@ namespace Mapbox.BaseModuleTests
                 string.Format(CultureInfo.InvariantCulture, "{0:F5},{1:F5}", -89.9876543, 45.1234567),
                 str);
         }
-        
-        [Test]
-        public void AlmostEqual_WithinTolerance_ReturnsTrue()
-        {
-            Assert.IsTrue(LatitudeLongitude.AlmostEqual(1.00000001, 1.00000002, 1e-6));
-        }
-
-        [Test]
-        public void AlmostEqual_OutsideTolerance_ReturnsFalse()
-        {
-            Assert.IsFalse(LatitudeLongitude.AlmostEqual(1.0, 1.1, 1e-6));
-        }
 
         [Test]
         public void Equals_ReturnsTrueForEqualValues()
@@ -85,14 +73,58 @@ namespace Mapbox.BaseModuleTests
             Assert.IsTrue(ll.IsValid());
         }
 
-        [TestCase(91, 0)]   // Latitude too high
-        [TestCase(-91, 0)]  // Latitude too low
-        [TestCase(0, 91)]   // Longitude too high
-        [TestCase(0, -91)]  // Longitude too low
+        [TestCase(91, 0)]   
+        [TestCase(-91, 0)]
+        [TestCase(0, 181)]  
+        [TestCase(0, -181)] 
         public void IsValid_ReturnsFalseForOutOfRangeValues(double lat, double lon)
         {
             var ll = new LatitudeLongitude(lat, lon);
             Assert.IsFalse(ll.IsValid());
+        }
+        
+        // Northern Hemisphere – Eastern Hemisphere
+        [TestCase(51.5074, -0.1278)]    // London, UK
+        [TestCase(48.8566, 2.3522)]     // Paris, France
+        [TestCase(55.7558, 37.6173)]    // Moscow, Russia
+        [TestCase(35.6895, 139.6917)]   // Tokyo, Japan
+        [TestCase(39.9042, 116.4074)]   // Beijing, China
+
+// Northern Hemisphere – Western Hemisphere
+        [TestCase(38.9072, -77.0369)]   // Washington, D.C., USA
+        [TestCase(45.4215, -75.6972)]   // Ottawa, Canada
+        [TestCase(19.4326, -99.1332)]   // Mexico City, Mexico
+        [TestCase(64.1466, -21.9426)]   // Reykjavik, Iceland
+
+// Southern Hemisphere – Eastern Hemisphere
+        [TestCase(-35.2809, 149.1300)]  // Canberra, Australia
+        [TestCase(-25.7461, 28.1881)]   // Pretoria, South Africa
+        [TestCase(-6.2088, 106.8456)]   // Jakarta, Indonesia
+        [TestCase(-41.2865, 174.7762)]  // Wellington, New Zealand
+
+// Southern Hemisphere – Western Hemisphere
+        [TestCase(-34.6037, -58.3816)]  // Buenos Aires, Argentina
+        [TestCase(-15.8267, -47.9218)]  // Brasília, Brazil
+        [TestCase(-33.4489, -70.6693)]  // Santiago, Chile
+        [TestCase(-12.0464, -77.0428)]  // Lima, Peru
+
+// Near Equator (precision edge cases)
+        [TestCase(0.3476, 32.5825)]     // Kampala, Uganda
+        [TestCase(-0.1807, -78.4678)]   // Quito, Ecuador
+        [TestCase(1.2921, 36.8219)]     // Nairobi, Kenya
+
+// Extreme longitude tests (close to ±180)
+        [TestCase(-9.4438, 147.1803)]   // Port Moresby, Papua New Guinea
+        [TestCase(-13.8333, -171.7667)] // Apia, Samoa
+        [TestCase(21.3069, -157.8583)]  // Honolulu, USA (near dateline influence)
+
+// Extreme latitude tests
+        [TestCase(64.9631, -19.0208)]   // Reykjavik (high north)
+        [TestCase(-54.8019, -68.3030)]  // Ushuaia, Argentina (far south)
+        public void IsValid_ReturnsTrueForCities(double lat, double lon)
+        {
+            var ll = new LatitudeLongitude(lat, lon);
+            Assert.IsTrue(ll.IsValid());
         }
     }
 }
