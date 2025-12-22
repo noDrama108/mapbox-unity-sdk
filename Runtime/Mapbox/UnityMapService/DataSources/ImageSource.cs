@@ -123,6 +123,11 @@ namespace Mapbox.UnityMapService.DataSources
             }
         }
 
+        public virtual void ClearMemoryCache()
+        {
+            _memoryCache.OnDestroy();
+        }
+        
         public override void OnDestroy()
         {
             base.OnDestroy();
@@ -130,10 +135,7 @@ namespace Mapbox.UnityMapService.DataSources
             {
                 tile.Value?.Cancel();
             }
-            foreach (var rasterData in _memoryCache.GetAllDatas())
-            {
-                GameObject.Destroy(rasterData.Texture);
-            }
+            _memoryCache.OnDestroy();
         }
         
         
@@ -146,7 +148,6 @@ namespace Mapbox.UnityMapService.DataSources
             T resultData = null;
             if (GetInstantData(requestedDataTileId, out resultData))
             {
-                
             }
             else if (_waitingList.ContainsKey(requestedDataTileId))
             {
@@ -387,24 +388,23 @@ namespace Mapbox.UnityMapService.DataSources
                         Debug.LogError(result.ExceptionsAsString);
                         return;
                     }
+
+                    if (result.State == WebResponseResult.Cancelled) return;
                     if (result.Tile is not RasterTile tile) return;
                     
-                    if (tile.CurrentTileState != TileState.Canceled)
+                    if (tile.StatusCode == 200)
                     {
-                        if (tile.StatusCode == 200)
-                        {
-                            //Debug.Log("expired and returned 200");
-                            TextureReceivedFromWeb(tile);
-                        }
-                        else if (tile.StatusCode == 304)
-                        {
-                            //not changed, just update meta?
-                            //Debug.Log("expired but not changed, just update meta?");
-                            UpdateExpiration(tile.Id, tile.TilesetId, tile.ExpirationDate);
-                        }
-
-                        TileUpdated(tile.TilesetId, tile.Id);
+                        //Debug.Log("expired and returned 200");
+                        TextureReceivedFromWeb(tile);
                     }
+                    else if (tile.StatusCode == 304)
+                    {
+                        //not changed, just update meta?
+                        //Debug.Log("expired but not changed, just update meta?");
+                        UpdateExpiration(tile.Id, tile.TilesetId, tile.ExpirationDate);
+                    }
+
+                    TileUpdated(tile.TilesetId, tile.Id);
                 });
                 //Debug.Log("tile needs an update");
             }

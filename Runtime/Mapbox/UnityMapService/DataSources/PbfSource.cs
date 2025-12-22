@@ -86,7 +86,12 @@ namespace Mapbox.UnityMapService.DataSources
                 _waitingList.Remove(unityTileId);
             }
         }
-
+        
+        public virtual void ClearMemoryCache()
+        {
+            _memoryCache.OnDestroy();
+        }
+        
         public override void OnDestroy()
         {
             base.OnDestroy();
@@ -94,6 +99,7 @@ namespace Mapbox.UnityMapService.DataSources
             {
                 tile.Value.Cancel();
             }
+            _memoryCache.OnDestroy();
         }
 
         
