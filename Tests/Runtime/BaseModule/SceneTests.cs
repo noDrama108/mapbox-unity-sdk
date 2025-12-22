@@ -25,6 +25,7 @@ namespace Mapbox.BaseModuleTests.PlayModeTests
 {
     internal class SceneTests
     {
+        private const string TestSceneName = "WorldMapScene";
         private string TestScreenshotsFolder = "TestScreenshots";
         private int _sceneIndex = -1;
 
@@ -42,26 +43,20 @@ namespace Mapbox.BaseModuleTests.PlayModeTests
         {
             get
             {
-                yield return new TestCaseData("WorldMapScene", 41.8336152, -87.896769).Returns(null);
-                yield return new TestCaseData("WorldMapScene", 60.1711822, 24.9422687).Returns(null);
-                yield return new TestCaseData("WorldMapScene", 52.5165309, 13.3777779).Returns(null);
-                yield return new TestCaseData("WorldMapScene", 48.8584642, 2.3097613).Returns(null);
-                yield return new TestCaseData("WorldMapScene", 37.7873314, -122.4080894).Returns(null);
-                yield return new TestCaseData("WorldMapScene", 46.85264466, -121.75710321).Returns(null);
-                yield return new TestCaseData("TerrainScene", 41.8336152, -87.896769).Returns(null);
-                yield return new TestCaseData("TerrainScene", 60.1711822, 24.9422687).Returns(null);
-                yield return new TestCaseData("TerrainScene", 52.5165309, 13.3777779).Returns(null);
-                yield return new TestCaseData("TerrainScene", 48.8584642, 2.3097613).Returns(null);
-                yield return new TestCaseData("TerrainScene", 37.7873314, -122.4080894).Returns(null);
-                yield return new TestCaseData("TerrainScene", 46.85264466, -121.75710321).Returns(null);
+                yield return new TestCaseData(TestSceneName, 41.8336152, -87.896769, 16).Returns(null);
+                yield return new TestCaseData(TestSceneName, 60.1711822, 24.9422687, 16).Returns(null);
+                yield return new TestCaseData(TestSceneName, 52.5165309, 13.3777779, 16).Returns(null);
+                yield return new TestCaseData(TestSceneName, 48.8584642, 2.3097613, 16).Returns(null);
+                yield return new TestCaseData(TestSceneName, 37.7873314, -122.4080894, 16).Returns(null);
+                yield return new TestCaseData(TestSceneName, 46.85264466, -121.75710321, 12).Returns(null);
             }
         }
 
         [UnityTest]
         [TestCaseSource(nameof(LatLngTestSource))]
-        public IEnumerator GroupTest(string sceneName, double lat, double lon)
+        public IEnumerator GroupTest(string sceneName, double lat, double lon, int zoom)
         {
-            yield return TestScene(sceneName, lat, lon);
+            yield return TestScene(sceneName, lat, lon, zoom);
         }
         
         //[UnityTest]
@@ -78,17 +73,17 @@ namespace Mapbox.BaseModuleTests.PlayModeTests
         //     }
         // }
 
-        public IEnumerator TestScene(string sceneName, double lat, double lon)
+        public IEnumerator TestScene(string sceneName, double lat, double lon, int zoom)
         {
-            yield return SceneManager.LoadSceneAsync(sceneName);
-            yield return ProcessScene(sceneName, lat, lon);
+            yield return SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Additive);
+            yield return ProcessScene(sceneName, lat, lon, zoom);
             yield return SceneManager.UnloadSceneAsync(sceneName);
         }
         
-        private IEnumerator ProcessScene(string sceneName, double lat, double lon)
+        private IEnumerator ProcessScene(string sceneName, double lat, double lon, int zoom)
         {
             var camera = Camera.main;
-            var mapCore = GameObject.FindObjectOfType<MapboxMapBehaviour>();
+            var mapCore = GameObject.FindObjectOfType<MapBehaviourCore>();
             MapboxMap _map = null;
             if (mapCore.InitializationStatus == InitializationStatus.WaitingForInitialization)
             {
@@ -96,7 +91,7 @@ namespace Mapbox.BaseModuleTests.PlayModeTests
                 {
                     _map = map;
                 };
-                mapCore.MapInformation.SetLatitudeLongitude(new LatitudeLongitude(lat, lon));
+                mapCore.MapInformation.SetInformation(new LatitudeLongitude(lat, lon), zoom);
                 mapCore.Initialize();
             }
             else
@@ -115,36 +110,20 @@ namespace Mapbox.BaseModuleTests.PlayModeTests
             Assert.IsNotEmpty(path);
         }
 
-
-        [UnityTest]
-        public IEnumerator ZoomInWithCache()
-        {
-            yield return ZoomInTest("DebugWorldMapScene");
-        }
+        static bool[] sqliteCache = new bool[] { true, false };
+        static bool[] fileCache = new bool[] { true, false };
         
         [UnityTest]
-        public IEnumerator ZoomOutWithCache()
+        public IEnumerator ZoomOutTest([ValueSource("fileCache")] bool fileCache, [ValueSource("sqliteCache")] bool sqliteCache)
         {
-            yield return ZoomOutTest("DebugWorldMapScene");
-        }
-        
-        [UnityTest]
-        public IEnumerator ZoomInNoCache()
-        {
-            yield return ZoomInTest("DebugWorldMapSceneNoCache");
-        }
-        
-        [UnityTest]
-        public IEnumerator ZoomOutNoCache()
-        {
-            yield return ZoomOutTest("DebugWorldMapSceneNoCache");
-        }
-        
-        private IEnumerator ZoomOutTest(string sceneName)
-        {
+            var sceneName = TestSceneName;
             yield return SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Additive);
             
-            var mapCore = GameObject.FindObjectOfType<LoggingMapBehaviour>();
+            var cacheManager = GameObject.FindObjectOfType<LoggingCacheManagerBehaviour>();
+            cacheManager.CreateFileCache = fileCache;
+            cacheManager.CreateSqliteCache = sqliteCache;
+            
+            var mapCore = GameObject.FindObjectOfType<MapBehaviourCore>();
             MapboxMap _map = null;
             var cameraController = GameObject.FindObjectOfType<Moving3dCameraBehaviour>();
             if (mapCore.InitializationStatus == InitializationStatus.WaitingForInitialization)
@@ -180,7 +159,7 @@ namespace Mapbox.BaseModuleTests.PlayModeTests
             
             while (mapCore.MapInformation.Zoom > 6)
             {
-                cameraController.Zoom(mapCore.MapInformation, -1 * Time.deltaTime);
+                mapCore.MapboxMap.ChangeView(null, mapCore.MapInformation.Zoom - 1 * Time.deltaTime);
                 yield return null;
             }
             
@@ -188,11 +167,20 @@ namespace Mapbox.BaseModuleTests.PlayModeTests
             yield return SceneManager.UnloadSceneAsync(sceneName);
         }
         
-        private IEnumerator ZoomInTest(string sceneName)
+        
+        
+        
+        [UnityTest]
+        public IEnumerator ZoomInTest([ValueSource("fileCache")] bool fileCache, [ValueSource("sqliteCache")] bool sqliteCache)
         {
+            var sceneName = TestSceneName;
             yield return SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Additive);
+
+            var cacheManager = GameObject.FindObjectOfType<LoggingCacheManagerBehaviour>();
+            cacheManager.CreateFileCache = fileCache;
+            cacheManager.CreateSqliteCache = sqliteCache;
             
-            var mapCore = GameObject.FindObjectOfType<LoggingMapBehaviour>();
+            var mapCore = GameObject.FindObjectOfType<MapBehaviourCore>();
             MapboxMap _map = null;
             var cameraController = GameObject.FindObjectOfType<Moving3dCameraBehaviour>();
             if (mapCore.InitializationStatus == InitializationStatus.WaitingForInitialization)
@@ -226,13 +214,19 @@ namespace Mapbox.BaseModuleTests.PlayModeTests
             _testRecorderController.PrepareRecording();
             _testRecorderController.StartRecording();
             
+            // while (mapCore.MapInformation.Zoom < 16.9)
+            // {
+            //     cameraController.Zoom(mapCore.MapInformation, 1 * Time.deltaTime);
+            //     yield return null;
+            // }
+            
             while (mapCore.MapInformation.Zoom < 16.9)
             {
-                cameraController.Zoom(mapCore.MapInformation, 1 * Time.deltaTime);
+                mapCore.MapboxMap.ChangeView(null, mapCore.MapInformation.Zoom + 1 * Time.deltaTime);
                 yield return null;
             }
 
-            yield return new WaitForSeconds(5);
+            yield return new WaitForSeconds(1);
             
             _testRecorderController?.StopRecording();
             yield return SceneManager.UnloadSceneAsync(sceneName);
