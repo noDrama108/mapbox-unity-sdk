@@ -283,7 +283,10 @@ namespace Mapbox.UnityMapService.DataSources
                         Debug.LogError(result.ExceptionsAsString);
                         return;
                     }
-                    if (result.Tile is not ByteArrayTile tile) return;
+                    
+                    var tile = result.Tile as ByteArrayTile;
+                    if (tile == null)
+                        return;
                     
                     _waitingList.Remove(cacheItem.TileId);
                     if (tile.CurrentTileState != TileState.Canceled)

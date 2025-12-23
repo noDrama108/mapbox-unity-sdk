@@ -390,7 +390,10 @@ namespace Mapbox.UnityMapService.DataSources
                     }
 
                     if (result.State == WebResponseResult.Cancelled) return;
-                    if (result.Tile is not RasterTile tile) return;
+                    
+                    var tile = result.Tile as RasterTile;
+                    if (tile == null)
+                        return;
                     
                     if (tile.StatusCode == 200)
                     {
