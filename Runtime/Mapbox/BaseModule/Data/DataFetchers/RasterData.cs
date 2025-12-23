@@ -18,6 +18,11 @@ namespace Mapbox.BaseModule.Data.DataFetchers
         public override void Dispose()
         {
             //no idea if this'll work with native
+#if UNITY_EDITOR
+            if (!Application.isPlaying)
+                GameObject.DestroyImmediate(Texture);
+            else
+#endif
             GameObject.Destroy(Texture);
             Texture = null;
             base.Dispose();

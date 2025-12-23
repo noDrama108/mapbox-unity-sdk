@@ -11,11 +11,7 @@ using Newtonsoft.Json;
 
 namespace Mapbox.DirectionsApi.MapMatching
 {
-	/// <summary> Base geocode response. </summary>
-#if !WINDOWS_UWP
-	//http://stackoverflow.com/a/12903628
 	[Serializable]
-#endif
 	public class MapMatchingResponse
 	{
 		/// <summary>Simple constructor for deserialization </summary>
@@ -29,13 +25,8 @@ namespace Mapbox.DirectionsApi.MapMatching
 		public Tracepoint[] Tracepoints;
 		[JsonProperty("matchings")]
 		public MatchObject[] Matchings;
-#if !WINDOWS_UWP
-		/// <summary>Error occured during matching</summary>
+
 		public bool HasMatchingError { get { return !"ok".Equals(Code, StringComparison.InvariantCultureIgnoreCase); } }
-#else
-		/// <summary>Error occured during matching</summary>
-		public bool HasMatchingError { get { return !"ok".Equals(Code, StringComparison.OrdinalIgnoreCase); } }
-#endif
 
 		public string MatchingError
 		{

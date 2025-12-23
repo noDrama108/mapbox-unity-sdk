@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Mapbox.BaseModule.Data.DataFetchers;
+using Mapbox.BaseModule.Data.Platform;
 using Mapbox.BaseModule.Data.Platform.Cache;
 using Mapbox.BaseModule.Data.Tiles;
 using Mapbox.BaseModule.Map;
@@ -56,8 +57,6 @@ namespace Mapbox.UnityMapService.DataSources
         {
             foreach (var id in retainedTiles)
             {
-                if (!IsZinSupportedRange(id.Z)) continue;
-                
                 if (!CheckInstantData(id))
                 {
                     LoadTile(id);
@@ -124,6 +123,11 @@ namespace Mapbox.UnityMapService.DataSources
             }
         }
 
+        public virtual void ClearMemoryCache()
+        {
+            _memoryCache.OnDestroy();
+        }
+        
         public override void OnDestroy()
         {
             base.OnDestroy();
@@ -131,10 +135,7 @@ namespace Mapbox.UnityMapService.DataSources
             {
                 tile.Value?.Cancel();
             }
-            foreach (var rasterData in _memoryCache.GetAllDatas())
-            {
-                GameObject.Destroy(rasterData.Texture);
-            }
+            _memoryCache.OnDestroy();
         }
         
         
@@ -147,7 +148,6 @@ namespace Mapbox.UnityMapService.DataSources
             T resultData = null;
             if (GetInstantData(requestedDataTileId, out resultData))
             {
-                
             }
             else if (_waitingList.ContainsKey(requestedDataTileId))
             {
@@ -381,24 +381,33 @@ namespace Mapbox.UnityMapService.DataSources
                 TileExpired(data.TilesetId, data.TileId);
                 var dataTile = CreateTile(data.TileId, data.TilesetId);
                 dataTile.ETag = data.ETag;
-                WebRequestUpdate(dataTile, (tile) =>
+                WebRequestUpdate(dataTile, (result) =>
                 {
-                    if (dataTile.CurrentTileState != TileState.Canceled)
+                    if (result.State == WebResponseResult.Failed)
                     {
-                        if (dataTile.StatusCode == 200)
-                        {
-                            //Debug.Log("expired and returned 200");
-                            TextureReceivedFromWeb(dataTile);
-                        }
-                        else if (dataTile.StatusCode == 304)
-                        {
-                            //not changed, just update meta?
-                            //Debug.Log("expired but not changed, just update meta?");
-                            UpdateExpiration(dataTile.Id, dataTile.TilesetId, dataTile.ExpirationDate);
-                        }
-
-                        TileUpdated(data.TilesetId, data.TileId);
+                        Debug.LogError(result.ExceptionsAsString);
+                        return;
                     }
+
+                    if (result.State == WebResponseResult.Cancelled) return;
+                    
+                    var tile = result.Tile as RasterTile;
+                    if (tile == null)
+                        return;
+                    
+                    if (tile.StatusCode == 200)
+                    {
+                        //Debug.Log("expired and returned 200");
+                        TextureReceivedFromWeb(tile);
+                    }
+                    else if (tile.StatusCode == 304)
+                    {
+                        //not changed, just update meta?
+                        //Debug.Log("expired but not changed, just update meta?");
+                        UpdateExpiration(tile.Id, tile.TilesetId, tile.ExpirationDate);
+                    }
+
+                    TileUpdated(tile.TilesetId, tile.Id);
                 });
                 //Debug.Log("tile needs an update");
             }

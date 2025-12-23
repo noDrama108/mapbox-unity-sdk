@@ -7,16 +7,11 @@
 using Mapbox.BaseModule.Data.Vector2d;
 using Mapbox.BaseModule.Utilities.JsonConverters;
 using Newtonsoft.Json;
+using System;
 
 namespace Mapbox.GeocodingApi
 {
-    using System;
-
-    /// <summary> Point geometry representing location of geocode result. </summary>
-#if !WINDOWS_UWP
-    //http://stackoverflow.com/a/12903628
     [Serializable]
-#endif
 	public class Geometry {
 		/// <summary>
 		///     Gets or sets type. Geocode results will always be type: point.

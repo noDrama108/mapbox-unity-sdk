@@ -237,7 +237,7 @@ namespace Mapbox.VectorModule
 		
 		private bool IsZinSupportedRange(int targetZ)
 		{
-			return _vectorModuleSettings.RejectTilesOutsideZoom.x <= targetZ && _vectorModuleSettings.RejectTilesOutsideZoom.y >= targetZ && _vectorSource.IsZinSupportedRange(targetZ);
+			return _vectorModuleSettings.RejectTilesOutsideZoom.x <= targetZ && _vectorModuleSettings.RejectTilesOutsideZoom.y >= targetZ;
 		}
 		
 		private void UpdateRetainedTiles(HashSet<CanonicalTileId> retainedTiles)

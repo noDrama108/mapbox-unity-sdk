@@ -1,8 +1,10 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using Mapbox.BaseModule.Data.DataFetchers;
 using Mapbox.BaseModule.Data.Platform.Cache;
+using Mapbox.BaseModule.Data.Platform.Cache.SQLiteCache;
 using Mapbox.BaseModule.Data.Tiles;
 using Mapbox.BaseModule.Map;
 using Mapbox.BaseModule.Unity;
@@ -16,81 +18,12 @@ using UnityEngine.TestTools;
 namespace Mapbox.BaseModuleTests
 {
     [TestFixture]
-    internal class PbfSourceTests
-    {
-        private MockSqliteCache _sqliteCache;
-        private MapboxCacheManager _cacheManager;
-        private DataFetchingManager _fetchingManager;
-        private VectorSource _vectorSource;
-
-        private string _testTilesetName = "mapbox.mapbox-streets-v8";
-        private CanonicalTileId _testTileId = new CanonicalTileId(16, 5, 7);
-        private Texture2D _testTexture;
-        private VectorData _testVectorData;
-
-        [OneTimeSetUp]
-        public void OneTimeSetUp()
-        {
-            _testTexture = Texture2D.whiteTexture;
-            _testVectorData = new VectorData()
-            {
-                TilesetId = _testTilesetName,
-                TileId = _testTileId,
-                Data = ImageConversion.EncodeToJPG(_testTexture),
-                ExpirationDate = DateTime.Now.AddHours(1),
-                ETag = "testETAG"
-            };
-
-            var mapboxContext = new MapboxContext();
-            var unityContext = new UnityContext();
-            var taskManager = new MockTaskManager();
-            taskManager.Initialize();
-            unityContext.TaskManager = taskManager;
-            _sqliteCache = new MockSqliteCache(taskManager);
-            _sqliteCache.ReadySqliteDatabase();
-            _cacheManager = new MapboxCacheManager(unityContext, new MemoryCache(), null, _sqliteCache);
-            _fetchingManager =
-                new LoggingDataFetchingManager(mapboxContext.GetAccessToken(), mapboxContext.GetSkuToken);
-            _vectorSource = new VectorSource(_fetchingManager, _cacheManager,
-                new VectorSourceSettings() { TilesetId = _testTilesetName });
-            _vectorSource.Initialize();
-        }
-
-        [SetUp]
-        public void Setup()
-        {
-            _sqliteCache.ClearDatabase();
-            _sqliteCache.ReadySqliteDatabase();
-        }
-
-        [UnityTest]
-        public IEnumerator SaveBlobTest()
-        {
-            _vectorSource.SaveBlob(_testVectorData, false);
-
-            VectorData resultData = null;
-            bool isDone = false;
-            Runnable.Instance.StartCoroutine(_vectorSource.LoadTileCoroutine(_testTileId, data =>
-            {
-                isDone = true;
-                resultData = data;
-            }));
-            while (!isDone) yield return null;
-            
-            Assert.NotNull(resultData);
-            Assert.AreEqual(_testTileId, resultData.TileId);
-            Assert.AreEqual(_testTilesetName, resultData.TilesetId);
-            Assert.AreEqual(_testVectorData.Data, resultData.Data);
-        }
-    }
-
-    [TestFixture]
     internal class ImageSourceTests
     {
         private MockFileCache _fileCache;
         private MockSqliteCache _sqliteCache;
         private MapboxCacheManager _cacheManager;
-        private DataFetchingManager _fetchingManager;
+        private LoggingDataFetchingManager _fetchingManager;
         private ImageSource<RasterData> _imageSource;
 
         private string _testTilesetName = "mapbox.satellite";
@@ -130,6 +63,7 @@ namespace Mapbox.BaseModuleTests
         [SetUp]
         public void Setup()
         {
+            _imageSource.ClearMemoryCache();
             _fileCache.ClearAll();
             _sqliteCache.ClearDatabase();
             _sqliteCache.ReadySqliteDatabase();
@@ -202,7 +136,6 @@ namespace Mapbox.BaseModuleTests
         public IEnumerator LoadTileCoroutineTestNoPreSaveShouldWeb()
         {
             RasterData resultData = null;
-           
             //doing this inWorking trick because editor tests only supports yield return null
             bool isWorking = true; 
             Runnable.Instance.StartCoroutine(_imageSource.LoadTileCoroutine(_testTileId, data =>
@@ -237,7 +170,143 @@ namespace Mapbox.BaseModuleTests
             Assert.AreEqual(_testRasterData.TilesetId, resultData.TilesetId);
             Assert.AreEqual(_testRasterData.TileId, resultData.TileId);
             Assert.AreNotEqual(resultData.Texture.GetPixels32().Length, 0);
-            Assert.AreEqual(resultData.CacheType, CacheType.FileCache);
+            Assert.AreEqual(CacheType.FileCache, resultData.CacheType);
+        }
+
+        [UnityTest]
+        public IEnumerator UpdateTileNoTagNoExpiration()
+        {
+            _imageSource.ClearMemoryCache();
+            bool isWorking = true; 
+            Runnable.Instance.StartCoroutine(_imageSource.LoadTileCoroutine(_testTileId, data =>
+            {
+                isWorking = false;
+            }));
+            while(isWorking) yield return null;
+
+            //update all tiles to no etag and expiration so web request response will be 200 due to no etag
+                        var allTiles = _sqliteCache.GetAllTiles();
+                        foreach (var tile in allTiles)
+                        {
+                            tile.etag = "";
+                            tile.expirationDate = 0;
+                            _sqliteCache.UpdateTile(tile);
+                        }
+            
+            //check if everything expired without etag
+            allTiles = _sqliteCache.GetAllTiles();
+            foreach (var tile in allTiles)
+            {
+                Assert.IsEmpty(tile.etag);
+                Assert.AreEqual(tile.expirationDate, 0);
+            }
+            
+            //remove from memory cache for clean reload
+            _imageSource.ClearMemoryCache();
+            
+            //load tile again, it's not in memory cache so it'll read file again and check expiration
+            isWorking = true; 
+            Runnable.Instance.StartCoroutine(_imageSource.LoadTileCoroutine(_testTileId, data =>
+            {
+                isWorking = false;
+            }));
+            while(isWorking) yield return null;
+            
+            //waiting for tile update finish
+                        var eventFired = false;
+                        float timeout = 5f;
+                        float t = 0f;
+                        _imageSource.TileUpdated += (s, e) =>
+                        {
+                            if (e == _testTileId)
+                                eventFired = true;
+                        };
+                        while (!eventFired && t < timeout)
+                        {
+                            t += Time.deltaTime;
+                            yield return null;
+                        }
+                        if (!eventFired && t >= timeout)
+                        {
+                            Assert.Fail("Image expiration test failed due to timeout");
+                        }
+            
+            Assert.IsTrue(_fetchingManager.FileSource.ResponseCodeCounts.ContainsKey(200));
+            Assert.AreNotEqual(_fetchingManager.FileSource.ResponseCodeCounts[200], 0);
+                        
+            allTiles = _sqliteCache.GetAllTiles();
+            foreach (var tile in allTiles)
+            {
+                Assert.IsNotEmpty(tile.etag);
+                Assert.AreNotEqual(tile.expirationDate, 0);
+            }
+        }
+        
+        [UnityTest]
+        public IEnumerator UpdateTileWithTagNoExpiration()
+        {
+            _imageSource.ClearMemoryCache();
+            bool isWorking = true; 
+            Runnable.Instance.StartCoroutine(_imageSource.LoadTileCoroutine(_testTileId, data =>
+            {
+                isWorking = false;
+            }));
+            while(isWorking) yield return null;
+
+            //update all tiles to no exp. we keep etags so web request response will be 304
+                        var allTiles = _sqliteCache.GetAllTiles();
+                        foreach (var tile in allTiles)
+                        {
+                            tile.expirationDate = 0;
+                            _sqliteCache.UpdateTile(tile);
+                        }
+            
+            //check if everything expired without etag
+            allTiles = _sqliteCache.GetAllTiles();
+            foreach (var tile in allTiles)
+            {
+                Assert.AreEqual(tile.expirationDate, 0);
+            }
+            
+            //remove from memory cache for clean reload
+            _imageSource.ClearMemoryCache();
+            
+            //load tile again, it's not in memory cache so it'll read file again and check expiration
+            isWorking = true; 
+            Runnable.Instance.StartCoroutine(_imageSource.LoadTileCoroutine(_testTileId, data =>
+            {
+                isWorking = false;
+            }));
+            while(isWorking) yield return null;
+            
+            //waiting for tile update finish
+                        var eventFired = false;
+                        float timeout = 5f;
+                        float t = 0f;
+                        _imageSource.TileUpdated += (s, e) =>
+                        {
+                            if (e == _testTileId)
+                                eventFired = true;
+                        };
+                        while (!eventFired && t < timeout)
+                        {
+                            t += Time.deltaTime;
+                            yield return null;
+                        }
+                        if (!eventFired && t >= timeout)
+                        {
+                            Assert.Fail("Image expiration test failed due to timeout");
+                        }
+
+            Assert.IsTrue(_fetchingManager.FileSource.ResponseCodeCounts.ContainsKey(304));
+            Assert.AreNotEqual(_fetchingManager.FileSource.ResponseCodeCounts[304], 0);
+                        
+            allTiles = _sqliteCache.GetAllTiles();
+            foreach (var tile in allTiles)
+            {
+                Assert.IsNotEmpty(tile.etag);
+                Assert.AreNotEqual(tile.expirationDate, 0);
+            }
         }
     }
 }

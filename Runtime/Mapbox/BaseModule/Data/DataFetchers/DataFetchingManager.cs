@@ -68,9 +68,9 @@ namespace Mapbox.BaseModule.Data.DataFetchers
 		
 		private IEnumerator UpdateTick()
 		{
-			while (!_isDestroying)
+			while (true)
 			{
-				while (_fetchQueue.Count > 0 &&
+				while (!_isDestroying && _fetchQueue.Count > 0 &&
 				       _globalActiveRequests.Count < _activeRequestLimit)
 				{
 					var info = _fetchQueue.Peek(); //we just peek first as we might want to hold it until delay timer runs out

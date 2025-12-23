@@ -5,17 +5,12 @@
 //-----------------------------------------------------------------------
 
 using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
 
 namespace Mapbox.GeocodingApi
 {
-	using System;
-	using System.Collections.Generic;
-
-	/// <summary> Base geocode response. </summary>
-#if !WINDOWS_UWP
-	//http://stackoverflow.com/a/12903628
 	[Serializable]
-#endif
 	public abstract class GeocodeResponse
 	{
 		/// <summary>
@@ -39,14 +34,8 @@ namespace Mapbox.GeocodingApi
 		[JsonProperty("attribution", Order = 3)]
 		public string Attribution;
 	}
-
-	/// <summary>
-	/// Reverse Geocode response.
-	/// </summary>
-#if !WINDOWS_UWP
-	//http://stackoverflow.com/a/12903628
+	
 	[Serializable]
-#endif
 	public class ReverseGeocodeResponse : GeocodeResponse
 	{
 		/// <summary>
@@ -57,13 +46,7 @@ namespace Mapbox.GeocodingApi
 		public List<double> Query;
 	}
 
-	/// <summary>
-	/// Forward geocode response.
-	/// </summary>
-#if !WINDOWS_UWP
-	//http://stackoverflow.com/a/12903628
 	[Serializable]
-#endif
 	public class ForwardGeocodeResponse : GeocodeResponse
 	{
 		/// <summary>

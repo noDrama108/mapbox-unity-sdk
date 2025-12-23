@@ -4,18 +4,19 @@ using System.Globalization;
 namespace Mapbox.BaseModule.Data.Vector2d
 {
     [Serializable]
-    public struct LatitudeLongitude
+    public struct LatitudeLongitude : IEquatable<LatitudeLongitude>
     {
+        private const double Tolerance = Double.Epsilon;
+        public const double MAX_LATITUDE = 90;
+        public const double MAX_LONGITUDE = 180;
+        
         public static LatitudeLongitude Invalid => new LatitudeLongitude(MAX_LATITUDE * 2, MAX_LONGITUDE * 2);
         public static bool operator ==(in LatitudeLongitude a, in LatitudeLongitude b) => a.Equals(in b);
         public static bool operator !=(in LatitudeLongitude a, in LatitudeLongitude b) => !a.Equals(in b);
-		
+      
 		
         public double Latitude;
         public double Longitude;
-
-        public const double MAX_LATITUDE = 90;
-        public const double MAX_LONGITUDE = 90;
 
         public LatitudeLongitude(double latitude, double longitude)
         {
@@ -33,19 +34,24 @@ namespace Mapbox.BaseModule.Data.Vector2d
             return string.Format(NumberFormatInfo.InvariantInfo, "{0:F5},{1:F5}", this.Longitude, this.Latitude);
         }
         
-        public static bool AlmostEqual(double a, double b, double tolerance = double.Epsilon)
+        private readonly bool AlmostEqual(double a, double b, double tolerance = double.Epsilon)
         {
             return Math.Abs(a - b) < tolerance;
         }
 
+        public bool Equals(LatitudeLongitude other)
+        {
+            return AlmostEqual(this.Latitude, other.Latitude, Tolerance) && AlmostEqual(this.Longitude, other.Longitude, Tolerance);
+        }
+        
         public readonly bool Equals(in LatitudeLongitude other)
         {
-            return AlmostEqual(this.Latitude, other.Latitude) && AlmostEqual(this.Longitude, other.Longitude);
+            return AlmostEqual(this.Latitude, other.Latitude, Tolerance) && AlmostEqual(this.Longitude, other.Longitude, Tolerance);
         }
 
         public override bool Equals(object obj) => obj is LatitudeLongitude other && Equals(in other);
         
-        public bool IsValid()// technically invalid only if latitude is outside of [-90, 90] as longitude can wrap around
+        public bool IsValid()
         {
             return Latitude >= -MAX_LATITUDE &&
                    Latitude <= MAX_LATITUDE &&
