@@ -47,14 +47,14 @@ namespace Mapbox.MapDebug.Scripts.Logging
         {
             _mapLogger = FindObjectOfType<MapLogger>();
 #if UNITY_RECORDER && UNITY_EDITOR
-            _mapLogger.AddLogger(_infoSequence);
+            _mapLogger?.AddLogger(_infoSequence);
             _infoSequence = FindObjectOfType<SequenceControllerBehaviour>() ?? gameObject.AddComponent<SequenceControllerBehaviour>();
 #endif
             
             MapInformation.Initialize();
             
             var taskManager = new LoggingTaskManager();
-            _mapLogger.AddLogger(taskManager);
+            _mapLogger?.AddLogger(taskManager);
             UnityContext.Initialize(taskManager);
             
             
@@ -118,7 +118,7 @@ namespace Mapbox.MapDebug.Scripts.Logging
 
         private void OnDestroy()
         {
-            MapboxMap.OnDestroy();
+            MapboxMap?.OnDestroy();
         }
 
         protected virtual MapService GetMapService(MapboxContext mapboxContext, UnityContext unityContext)
@@ -144,15 +144,15 @@ namespace Mapbox.MapDebug.Scripts.Logging
             var sqliteCache = new MockSqliteCache(unityContext.TaskManager, 1000);
             var fileCache = new MockFileCache(unityContext.TaskManager);
             
-            _mapLogger.AddLogger(fileCache);
-            _mapLogger.AddLogger(sqliteCache);
+            _mapLogger?.AddLogger(fileCache);
+            _mapLogger?.AddLogger(sqliteCache);
             
             var cacheManager = new LoggingCacheManager(
                 unityContext,
                 new MemoryCache(),
                 fileCache,
                 sqliteCache);
-            _mapLogger.AddLogger(cacheManager);
+            _mapLogger?.AddLogger(cacheManager);
             return cacheManager;
         }
 
@@ -162,14 +162,14 @@ namespace Mapbox.MapDebug.Scripts.Logging
                 ? _tileCreatorBehaviour.GetTileCreator(unityContext)
                 : new TileCreator(unityContext);
             var mapVis = new LoggingMapVisualizer(mapInfo, unityContext, tileCreator);
-            _mapLogger.AddLogger(mapVis);
+            _mapLogger?.AddLogger(mapVis);
             return mapVis;
         }
         
         protected virtual DataFetchingManager CreateDataFetchingManager(MapboxContext mapboxContext)
         {
             var fetcher = new LoggingDataFetchingManager(mapboxContext.GetAccessToken(), mapboxContext.GetSkuToken);
-            _mapLogger.AddLogger(fetcher);
+            _mapLogger?.AddLogger(fetcher);
             return fetcher;
         }
     }

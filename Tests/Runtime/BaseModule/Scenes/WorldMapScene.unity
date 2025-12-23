@@ -38,7 +38,6 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.4465785, g: 0.49641246, b: 0.57481706, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -104,7 +103,7 @@ NavMeshSettings:
   serializedVersion: 2
   m_ObjectHideFlags: 0
   m_BuildSettings:
-    serializedVersion: 2
+    serializedVersion: 3
     agentTypeID: 0
     agentRadius: 0.5
     agentHeight: 2
@@ -117,7 +116,7 @@ NavMeshSettings:
     cellSize: 0.16666667
     manualTileSize: 0
     tileSize: 256
-    accuratePlacement: 0
+    buildHeightMesh: 0
     maxJobWorkers: 0
     preserveTilesOutsideBounds: 0
     debug:
@@ -153,6 +152,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4f231c4fb786f3946a6b90b886c48677, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_SendPointerHoverToParent: 1
   m_HorizontalAxis: Horizontal
   m_VerticalAxis: Vertical
   m_SubmitButton: Submit
@@ -182,12 +182,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 166616394}
+  serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &745711774
 GameObject:
@@ -276,12 +277,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 745711774}
+  serializedVersion: 2
   m_LocalRotation: {x: 0.40821788, y: -0.23456968, z: 0.10938163, w: 0.8754261}
   m_LocalPosition: {x: 0, y: 3, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 50, y: -30, z: 0}
 --- !u!114 &745711777
 MonoBehaviour:
@@ -295,7 +297,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 474bcb49853aa07438625e644c072ee6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_Version: 3
   m_UsePipelineSettings: 1
+  m_AdditionalLightsShadowResolutionTier: 2
+  m_LightLayerMask: 1
+  m_RenderingLayers: 1
+  m_CustomShadowLayers: 0
+  m_ShadowLayerMask: 1
+  m_ShadowRenderingLayers: 1
+  m_LightCookieSize: {x: 1, y: 1}
+  m_LightCookieOffset: {x: 0, y: 0}
+  m_SoftShadowQuality: 0
 --- !u!1 &985205833
 GameObject:
   m_ObjectHideFlags: 0
@@ -328,9 +340,17 @@ Camera:
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
   m_FOVAxisMode: 0
+  m_Iso: 200
+  m_ShutterSpeed: 0.005
+  m_Aperture: 16
+  m_FocusDistance: 10
+  m_FocalLength: 50
+  m_BladeCount: 5
+  m_Curvature: {x: 2, y: 11}
+  m_BarrelClipping: 0.25
+  m_Anamorphism: 0
   m_SensorSize: {x: 36, y: 24}
   m_LensShift: {x: 0, y: 0}
-  m_FocalLength: 50
   m_NormalizedViewPortRect:
     serializedVersion: 2
     x: 0
@@ -338,7 +358,7 @@ Camera:
     width: 1
     height: 1
   near clip plane: 0.01
-  far clip plane: 1000
+  far clip plane: 5000
   field of view: 60
   orthographic: 0
   orthographic size: 5
@@ -364,12 +384,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 985205833}
+  serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 1, z: 0}
   m_LocalScale: {x: 1, y: 1.0000002, z: 1.0000002}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &985205837
 MonoBehaviour:
@@ -401,9 +422,20 @@ MonoBehaviour:
   m_Dithering: 0
   m_ClearDepth: 1
   m_AllowXRRendering: 1
+  m_AllowHDROutput: 1
+  m_UseScreenCoordOverride: 0
+  m_ScreenSizeOverride: {x: 0, y: 0, z: 0, w: 0}
+  m_ScreenCoordScaleBias: {x: 0, y: 0, z: 0, w: 0}
   m_RequiresDepthTexture: 0
   m_RequiresColorTexture: 0
   m_Version: 2
+  m_TaaSettings:
+    m_Quality: 3
+    m_FrameInfluence: 0.1
+    m_JitterScale: 1
+    m_MipBias: 0
+    m_VarianceClampScale: 0.9
+    m_ContrastAdaptiveSharpening: 0
 --- !u!1 &1316629397
 GameObject:
   m_ObjectHideFlags: 0
@@ -413,11 +445,11 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1316629400}
-  - component: {fileID: 1316629399}
-  - component: {fileID: 1316629398}
-  - component: {fileID: 1316629405}
-  - component: {fileID: 1316629404}
+  - component: {fileID: 1316629409}
   - component: {fileID: 1316629406}
+  - component: {fileID: 1316629405}
+  - component: {fileID: 1316629408}
+  - component: {fileID: 1316629407}
   m_Layer: 0
   m_Name: Map
   m_TagString: Untagged
@@ -425,84 +457,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1316629398
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1316629397}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2fa13573d971f40649081b02ffc8366c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  Settings:
-    modificationOptions:
-      SimplificationFactor: 1
-    unityLayerOptions:
-      addToLayer: 0
-      layerId: 0
-    sideWallOptions:
-      isActive: 0
-      wallHeight: 10
-      wallMaterial: {fileID: 2100000, guid: a6a681001a245ce4089aea4634eee2b8, type: 2}
-    TileMeshSize: 1
---- !u!114 &1316629399
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1316629397}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8987c930e6fb0479a907044faef4ab26, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  MapInformation:
-    Pitch: 45
-    Bearing: 0
-    Scale: 1000
-    _latitudeLongitudeString: 60.1712373,24.9435977
-    _zoom: 16
-    _useDynamicScaling: 1
-    ScaleCurve:
-      serializedVersion: 2
-      m_Curve:
-      - serializedVersion: 3
-        time: 0
-        value: 5
-        inSlope: -0.52447927
-        outSlope: -0.52447927
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0
-        outWeight: 0.046755012
-      - serializedVersion: 3
-        time: 23
-        value: 1
-        inSlope: 0
-        outSlope: 0
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0
-        outWeight: 0
-      m_PreInfinity: 2
-      m_PostInfinity: 2
-      m_RotationOrder: 4
-  UnityContext:
-    CoroutineStarter: {fileID: 1316629399}
-    MapRoot: {fileID: 1316629400}
-    BaseTileRoot: {fileID: 1316629400}
-    RuntimeGenerationRoot: {fileID: 0}
-    TileMaterials:
-    - {fileID: 2100000, guid: a6a681001a245ce4089aea4634eee2b8, type: 2}
-  _tileCreatorBehaviour: {fileID: 1316629398}
-  TileProvider: {fileID: 2054936219}
-  DataFetcher: {fileID: 2054936214}
-  CacheManager: {fileID: 2054936222}
-  InitializeOnStart: 0
 --- !u!4 &1316629400
 Transform:
   m_ObjectHideFlags: 0
@@ -510,35 +464,14 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1316629397}
+  serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1316629404
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1316629397}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: defaaf886f6a45359874b07a2bca6ea7, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  Settings:
-    ElevationLayerType: 1
-    SourceType: 1
-    CustomSourceId: 
-    LoadBackgroundTextures: 1
-    UseShaderTerrain: 1
-    DataSettings:
-      UseRetinaTextures: 1
-      UseNonReadableTextures: 1
-      CacheSize: 100
 --- !u!114 &1316629405
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -559,7 +492,24 @@ MonoBehaviour:
       UseRetinaTextures: 1
       UseNonReadableTextures: 1
       CacheSize: 100
+      ClampDataLevelToMax: 25
+    RejectTilesOutsideZoom: {x: 2, y: 25}
 --- !u!114 &1316629406
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1316629397}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2fa13573d971f40649081b02ffc8366c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  TileMaterials:
+  - {fileID: 2100000, guid: a6a681001a245ce4089aea4634eee2b8, type: 2}
+  CacheSize: 25
+--- !u!114 &1316629407
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -571,12 +521,73 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 13ef846e428d4d41b3827620e39b8a6a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _vectorModuleSettings:
-    LayerRange: {x: 12, y: 16}
-  _sourceType: 2
-  CustomSourceTilesetName: mapbox.mapbox-streets-v8,mapbox.mpl-v2
+  vectorModuleSettings:
+    SourceType: 0
+    CustomSourceId: 
+    DataSettings:
+      CacheSize: 100
+      ClampDataLevelToMax: 15
+    RejectTilesOutsideZoom: {x: 12, y: 16}
   _layerVisualizers:
   - {fileID: 11400000, guid: 86f58468535852c4fb74fc6d373a02ee, type: 2}
+--- !u!114 &1316629408
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1316629397}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: defaaf886f6a45359874b07a2bca6ea7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Settings:
+    LoadBackgroundTextures: 1
+    UseShaderTerrain: 1
+    DataSettings:
+      UseRetinaTextures: 1
+      UseNonReadableTextures: 1
+      CacheSize: 100
+      ClampDataLevelToMax: 14
+    RejectTilesOutsideZoom: {x: 5, y: 25}
+    ElevationLayerProperties:
+      modificationOptions:
+        SimplificationFactor: 1
+      unityLayerOptions:
+        addToLayer: 0
+        layerId: 0
+      sideWallOptions:
+        isActive: 0
+        wallHeight: 0.1
+      TileMeshSize: 1
+--- !u!114 &1316629409
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1316629397}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8987c930e6fb0479a907044faef4ab26, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  MapInformation:
+    _pitch: 90
+    _bearing: 0
+    _scale: 1000
+    _latitudeLongitudeString: 60.1710235,24.9432024
+    _zoom: 8
+  UnityContext:
+    MapRoot: {fileID: 1316629400}
+    BaseTileRoot: {fileID: 0}
+    RuntimeGenerationRoot: {fileID: 0}
+  _tileCreatorBehaviour: {fileID: 1316629406}
+  TileProvider: {fileID: 0}
+  DataFetcher: {fileID: 0}
+  CacheManager: {fileID: 2143662170}
+  InitializeOnStart: 0
 --- !u!1 &2054936213
 GameObject:
   m_ObjectHideFlags: 0
@@ -588,12 +599,7 @@ GameObject:
   - component: {fileID: 2054936215}
   - component: {fileID: 2054936217}
   - component: {fileID: 2054936216}
-  - component: {fileID: 2054936218}
-  - component: {fileID: 2054936219}
-  - component: {fileID: 2054936214}
-  - component: {fileID: 2054936222}
   - component: {fileID: 2054936220}
-  - component: {fileID: 2054936221}
   m_Layer: 0
   m_Name: Utility
   m_TagString: Untagged
@@ -601,18 +607,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &2054936214
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2054936213}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a4890611d70ec425e8901751ad503087, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!4 &2054936215
 Transform:
   m_ObjectHideFlags: 0
@@ -620,12 +614,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2054936213}
+  serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &2054936216
 MonoBehaviour:
@@ -639,7 +634,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: caaa5942c50bf46e99b3904ca295889c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  MapBehaviour: {fileID: 1316629399}
+  MapBehaviour: {fileID: 1316629409}
   Camera: {fileID: 985205834}
   ShiftRange: {x: 2000, y: 2000}
 --- !u!114 &2054936217
@@ -654,7 +649,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0439abe6d989b44a38eb2f8b633769fc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  MapBehaviour: {fileID: 1316629399}
+  MapBehaviour: {fileID: 1316629409}
   Camera: {fileID: 985205834}
   Core:
     Pitch: 30
@@ -663,224 +658,9 @@ MonoBehaviour:
     CameraDistance: 20
     _targetPosition: {x: 0, y: 0, z: 0}
     RotationSpeed: 50
-    CameraCurve:
-      serializedVersion: 2
-      m_Curve:
-      - serializedVersion: 3
-        time: 0
-        value: 40075016
-        inSlope: -20037508
-        outSlope: -20037508
-        tangentMode: 34
-        weightedMode: 0
-        inWeight: 0
-        outWeight: 0.33333334
-      - serializedVersion: 3
-        time: 1
-        value: 20037508
-        inSlope: -15028131
-        outSlope: -15028131
-        tangentMode: 34
-        weightedMode: 0
-        inWeight: 0.33333334
-        outWeight: 0.33333334
-      - serializedVersion: 3
-        time: 2
-        value: 10018754
-        inSlope: -7514065.5
-        outSlope: -7514065.5
-        tangentMode: 34
-        weightedMode: 0
-        inWeight: 0.33333334
-        outWeight: 0.33333334
-      - serializedVersion: 3
-        time: 3
-        value: 5009377
-        inSlope: -3757033
-        outSlope: -3757033
-        tangentMode: 34
-        weightedMode: 0
-        inWeight: 0.33333334
-        outWeight: 0.33333334
-      - serializedVersion: 3
-        time: 4
-        value: 2504688
-        inSlope: -1878516.5
-        outSlope: -1878516.5
-        tangentMode: 34
-        weightedMode: 0
-        inWeight: 0.33333334
-        outWeight: 0.33333334
-      - serializedVersion: 3
-        time: 5
-        value: 1252344
-        inSlope: -939258
-        outSlope: -939258
-        tangentMode: 34
-        weightedMode: 0
-        inWeight: 0.33333334
-        outWeight: 0.33333334
-      - serializedVersion: 3
-        time: 6
-        value: 626172
-        inSlope: -469629
-        outSlope: -469629
-        tangentMode: 34
-        weightedMode: 0
-        inWeight: 0.33333334
-        outWeight: 0.33333334
-      - serializedVersion: 3
-        time: 7
-        value: 313086
-        inSlope: -234814.5
-        outSlope: -234814.5
-        tangentMode: 34
-        weightedMode: 0
-        inWeight: 0.33333334
-        outWeight: 0.33333334
-      - serializedVersion: 3
-        time: 8
-        value: 156543
-        inSlope: -117407.5
-        outSlope: -117407.5
-        tangentMode: 34
-        weightedMode: 0
-        inWeight: 0.33333334
-        outWeight: 0.33333334
-      - serializedVersion: 3
-        time: 9
-        value: 78271
-        inSlope: -58704
-        outSlope: -58704
-        tangentMode: 34
-        weightedMode: 0
-        inWeight: 0.33333334
-        outWeight: 0.33333334
-      - serializedVersion: 3
-        time: 10
-        value: 39135
-        inSlope: -29352
-        outSlope: -29352
-        tangentMode: 34
-        weightedMode: 0
-        inWeight: 0.33333334
-        outWeight: 0.33333334
-      - serializedVersion: 3
-        time: 11
-        value: 19567
-        inSlope: -14676
-        outSlope: -14676
-        tangentMode: 34
-        weightedMode: 0
-        inWeight: 0.33333334
-        outWeight: 0.33333334
-      - serializedVersion: 3
-        time: 12
-        value: 9783
-        inSlope: -7338
-        outSlope: -7338
-        tangentMode: 34
-        weightedMode: 0
-        inWeight: 0.33333334
-        outWeight: 0.33333334
-      - serializedVersion: 3
-        time: 13
-        value: 4891
-        inSlope: -3669
-        outSlope: -3669
-        tangentMode: 34
-        weightedMode: 0
-        inWeight: 0.33333334
-        outWeight: 0.33333334
-      - serializedVersion: 3
-        time: 14
-        value: 2445
-        inSlope: -1834.5
-        outSlope: -1834.5
-        tangentMode: 34
-        weightedMode: 0
-        inWeight: 0.33333334
-        outWeight: 0.33333334
-      - serializedVersion: 3
-        time: 15
-        value: 1222
-        inSlope: -917
-        outSlope: -917
-        tangentMode: 34
-        weightedMode: 0
-        inWeight: 0.33333334
-        outWeight: 0.33333334
-      - serializedVersion: 3
-        time: 16
-        value: 611
-        inSlope: -458.5
-        outSlope: -458.5
-        tangentMode: 34
-        weightedMode: 0
-        inWeight: 0.33333334
-        outWeight: 0.33333334
-      - serializedVersion: 3
-        time: 17
-        value: 305
-        inSlope: -191.25
-        outSlope: -191.25
-        tangentMode: 34
-        weightedMode: 0
-        inWeight: 0.33333334
-        outWeight: 0.33333334
-      - serializedVersion: 3
-        time: 19
-        value: 152
-        inSlope: -62.75
-        outSlope: -62.75
-        tangentMode: 34
-        weightedMode: 0
-        inWeight: 0.33333334
-        outWeight: 0.33333334
-      - serializedVersion: 3
-        time: 22
-        value: 5
-        inSlope: -49
-        outSlope: -49
-        tangentMode: 34
-        weightedMode: 0
-        inWeight: 0.33333334
-        outWeight: 0
-      m_PreInfinity: 2
-      m_PostInfinity: 2
-      m_RotationOrder: 4
+    CameraCurve: {fileID: 11400000, guid: 2bf613a56d9994abaab37fadf722da06, type: 2}
     CamDistanceMultiplier: 2
     ZoomSpeed: 2
---- !u!114 &2054936218
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2054936213}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: acc29dd13133c204f9e5ac8c53f4d266, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  MapBehaviour: {fileID: 1316629399}
-  Width: 20
---- !u!114 &2054936219
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2054936213}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2da0fe21ba3934f29b8bc45ce25425c3, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  TileProvider:
-    Camera: {fileID: 985205834}
-    MinimumZoomLevel: 2
-    MaximumZoomLevel: 22
 --- !u!114 &2054936220
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -893,32 +673,64 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ebdd7f26e97e24a81ba627ec6de69bd8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  MapBehaviour: {fileID: 1316629399}
+  Camera: {fileID: 985205834}
+  MapBehaviour: {fileID: 1316629409}
   Color: {r: 1, g: 1, b: 1, a: 1}
-  TileIdFontSize: 20
---- !u!114 &2054936221
+  Color2: {r: 1, g: 0, b: 0, a: 1}
+  TileIdFontSize: 40
+--- !u!1 &2143662167
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2143662169}
+  - component: {fileID: 2143662170}
+  m_Layer: 0
+  m_Name: CacheManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2143662169
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2143662167}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.047257364, y: 0, z: 0.03698963}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2143662170
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2054936213}
+  m_GameObject: {fileID: 2143662167}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 90df02810a6d14981af24e9bf2b111c5, type: 3}
+  m_Script: {fileID: 11500000, guid: a9eeb494f1b674c0a82b66033e719ca2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  FilePath: /Users/barankahyaoglu/Library/Application Support/DefaultCompany/sdkproject/log/20240716T194955
-  Speed: 1
---- !u!114 &2054936222
-MonoBehaviour:
+  CreateSqliteCache: 0
+  CreateFileCache: 0
+--- !u!1660057539 &9223372036854775807
+SceneRoots:
   m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2054936213}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ad3dad0fd97b46ccb752a9945ac86190, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  m_Roots:
+  - {fileID: 985205836}
+  - {fileID: 745711776}
+  - {fileID: 1316629400}
+  - {fileID: 2054936215}
+  - {fileID: 166616397}
+  - {fileID: 2143662169}
