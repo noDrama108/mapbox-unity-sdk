@@ -1,12 +1,14 @@
 using System;
 using System.Collections;
 using Mapbox.BaseModule.Data.Vector2d;
-using Mapbox.BaseModule.Plugins.Android.UniAndroidPermission;
 using Mapbox.BaseModule.Utilities;
 using Mapbox.LocationModule.AngleSmoothing;
 using Mapbox.LocationModule.UnityLocationWrappers;
 using Mapbox.Utils;
 using UnityEngine;
+#if UNITY_ANDROID
+using UnityEngine.Android;
+#endif
 
 namespace Mapbox.LocationModule
 {
@@ -88,10 +90,11 @@ namespace Mapbox.LocationModule
 		// TODO: show message to users in case they accidentallly denied permission
 #if UNITY_ANDROID
 		private bool _gotPermissionRequestResponse = false;
+		private bool _permissionGrantedResult = false;
 
-		private void OnAllow() { _gotPermissionRequestResponse = true; }
-		private void OnDeny() { _gotPermissionRequestResponse = true; }
-		private void OnDenyAndNeverAskAgain() { _gotPermissionRequestResponse = true; }
+		private void OnAllow() { _permissionGrantedResult = true; _gotPermissionRequestResponse = true; }
+		private void OnDeny() { _permissionGrantedResult = false; _gotPermissionRequestResponse = true; }
+		private void OnDenyAndNeverAskAgain() { _permissionGrantedResult = false; _gotPermissionRequestResponse = true; }
 #endif
 
 
@@ -160,14 +163,46 @@ namespace Mapbox.LocationModule
 
 			//request runtime fine location permission on Android if not yet allowed
 #if UNITY_ANDROID
-			if (!_locationService.isEnabledByUser)
+			if (!Permission.HasUserAuthorizedPermission(Permission.FineLocation))
 			{
-				UniAndroidPermission.RequestPermission(AndroidPermission.ACCESS_FINE_LOCATION);
-				//wait for user to allow or deny
-				while (!_gotPermissionRequestResponse) { yield return _wait1sec; }
+				_gotPermissionRequestResponse = false;
+				_permissionGrantedResult = false;
+				var callbacks = new PermissionCallbacks();
+				callbacks.PermissionGranted += _ => OnAllow();
+				callbacks.PermissionDenied += _ => OnDeny();
+				Permission.RequestUserPermission(Permission.FineLocation, callbacks);
+				// Some OEM/GameActivity flows grant permission but never invoke the callback.
+				// Fall back to the actual permission state so startup cannot hang forever here.
+				int permissionWait = 20;
+				while (!_gotPermissionRequestResponse
+					&& !Permission.HasUserAuthorizedPermission(Permission.FineLocation)
+					&& permissionWait-- > 0)
+				{
+					yield return _wait1sec;
+				}
+				if (!_gotPermissionRequestResponse && Permission.HasUserAuthorizedPermission(Permission.FineLocation))
+				{
+					_permissionGrantedResult = true;
+					_gotPermissionRequestResponse = true;
+				}
+				if (!_gotPermissionRequestResponse)
+				{
+					_gotPermissionRequestResponse = true;
+				}
+			}
+			else
+			{
+				_gotPermissionRequestResponse = true;
+				_permissionGrantedResult = true;
 			}
 #endif
 
+
+			int serviceReadyWait = 5;
+			while (_permissionGrantedResult && !_locationService.isEnabledByUser && serviceReadyWait-- > 0)
+			{
+				yield return _wait1sec;
+			}
 
 			if (!_locationService.isEnabledByUser)
 			{

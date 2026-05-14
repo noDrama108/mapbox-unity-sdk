@@ -45,6 +45,7 @@ namespace Mapbox.BaseModule.Map
             };
 
             _mapInformation.WorldScaleChanged += RepositionAllTiles;
+            _mapInformation.ViewChanged += RepositionAllTiles;
             
             _toRemove = new HashSet<UnwrappedTileId>();
             _retainedTiles = new HashSet<CanonicalTileId>();

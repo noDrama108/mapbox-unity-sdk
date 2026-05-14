@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Mapbox.BaseModule.Map;
@@ -18,7 +18,7 @@ namespace Mapbox.BaseModule.Utilities
 		protected void Awake()
 		{
 			_mapServices = new List<MapService>();
-			var cores = FindObjectsOfType<MapBehaviourCore>().ToList();
+			var cores = FindObjectsByType<MapBehaviourCore>(FindObjectsSortMode.None).ToList();
 			foreach (var core in cores)
 			{
 				if (core.InitializationStatus < InitializationStatus.Initialized)

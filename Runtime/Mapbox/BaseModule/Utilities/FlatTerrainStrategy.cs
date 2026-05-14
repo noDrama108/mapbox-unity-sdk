@@ -1,4 +1,4 @@
-﻿using Mapbox.BaseModule.Unity;
+using Mapbox.BaseModule.Unity;
 using Mapbox.ImageModule.Terrain.Settings;
 using Mapbox.ImageModule.Terrain.TerrainStrategies;
 using UnityEngine;
@@ -9,7 +9,7 @@ namespace Mapbox.BaseModule.Utilities
 	{
 		MeshDataArray _cachedQuad;
 
-		public int RequiredVertexCount => 4;
+		public override int RequiredVertexCount => 4;
 
 		public FlatTerrainStrategy()
 		{

@@ -2,6 +2,7 @@
     "name": "MapboxExamples",
     "rootNamespace": "",
     "references": [
+        "Unity.InputSystem",
         "GUID:093b9fb2cd4794a8c94472d55c8bb0a9",
         "GUID:2400806fb903448e5b7e737b92f1e434",
         "GUID:5ff00896142b94bc7a58a7c72b2faf57",

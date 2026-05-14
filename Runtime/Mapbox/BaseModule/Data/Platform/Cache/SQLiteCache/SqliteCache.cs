@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -272,7 +272,6 @@ CONSTRAINT tileAssignmentConstraint UNIQUE (tileId, mapId)
 							if (1 != rowsAffected)
 							{
 								throw new Exception(string.Format("tile [{0} / {1}] was not updated, rows affected:{2}", tilesetName, tileId, rowsAffected));
-								return false;
 							}
 						}
 						return true;

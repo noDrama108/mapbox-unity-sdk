@@ -2,6 +2,7 @@ using System;
 using Mapbox.BaseModule.Map;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.InputSystem;
 
 namespace Mapbox.Example.Scripts.MapInput
 {
@@ -47,29 +48,32 @@ namespace Mapbox.Example.Scripts.MapInput
         
         public override bool UpdateCamera(IMapInformation mapInformation)
         {
-            if (EventSystem.current.IsPointerOverGameObject())
+            var mouse = Mouse.current;
+            if (mouse == null)
                 return false;
-            
+            if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
+                return false;
+
+            Vector3 mousePos = new Vector3(mouse.position.ReadValue().x, mouse.position.ReadValue().y, 0f);
             var hasChanged = false;
-            if (Input.GetMouseButtonDown(0) || Input.GetMouseButtonDown(1))
+
+            if (mouse.leftButton.wasPressedThisFrame || mouse.rightButton.wasPressedThisFrame)
             {
-                _previousScreenPosition = UnityEngine.Input.mousePosition;
-                _dragOrigin = GetPlaneIntersection(UnityEngine.Input.mousePosition);
+                _previousScreenPosition = mousePos;
+                _dragOrigin = GetPlaneIntersection(mousePos);
             }
 
-            if (Input.GetMouseButton(0))
+            if (mouse.leftButton.isPressed)
             {
-                var newPoint = GetPlaneIntersection(Input.mousePosition);
+                var newPoint = GetPlaneIntersection(mousePos);
                 Vector3 pos = newPoint - _dragOrigin;
                 Vector3 move = new Vector3(pos.x * Speed, 0, pos.z * Speed);
-                
                 _targetPosition += move;
                 hasChanged = true;
-                
             }
-            else if (Input.GetMouseButton(1) )
+            else if (mouse.rightButton.isPressed)
             {
-                var deltaMousePos = (Input.mousePosition - _previousScreenPosition);
+                var deltaMousePos = (Vector3)(mouse.position.ReadValue() - (Vector2)_previousScreenPosition);
                 deltaAngleH = deltaMousePos.x;
                 deltaAngleV = deltaMousePos.y;
                 if (deltaAngleH != 0 || deltaAngleV != 0)
@@ -80,23 +84,18 @@ namespace Mapbox.Example.Scripts.MapInput
                 }
                 hasChanged = true;
             }
-            else if (Input.mouseScrollDelta.magnitude > 0)
+            else
             {
-                Zoom(
-                    mapInformation,
-                    GetPlaneIntersection(Input.mousePosition), 
-                    Input.GetAxis("Mouse ScrollWheel"));
-                //we still update _targetPosition with center screen as if this cursor focused zoom didn't happen
-                //this'll ensure smooth transition to other movements (pan after zoom)
-                hasChanged = true;
+                var scroll = mouse.scroll.ReadValue().y;
+                if (Mathf.Abs(scroll) > 0.0001f)
+                {
+                    Zoom(mapInformation, GetPlaneIntersection(mousePos), scroll);
+                    hasChanged = true;
+                }
             }
-            //SetCamPositionByMapInfo(mapInformation);
-			
-            _dragOrigin = GetPlaneIntersection(Input.mousePosition);
-            _previousScreenPosition = Input.mousePosition;
-            
-            //we probably shouldn't write to mapInformation here but do it in Moving3dCamBehaviour, along with pitch and bearing
-            //mapInformation.ViewCenter = GetPlaneIntersection(Camera.ViewportToScreenPoint(new Vector3(0.5f, 0.5f)));
+
+            _dragOrigin = GetPlaneIntersection(mousePos);
+            _previousScreenPosition = mousePos;
 
             return hasChanged;
         }
@@ -141,7 +140,9 @@ namespace Mapbox.Example.Scripts.MapInput
             _camera.transform.position = _targetPosition;
             _camera.transform.rotation = Quaternion.Euler(Pitch, Bearing, 0);
             _camera.transform.position += _camera.transform.forward * (-1f * CameraDistance);
-            _dragOrigin = GetPlaneIntersection(UnityEngine.Input.mousePosition);
+            var mouse = Mouse.current;
+            if (mouse != null)
+                _dragOrigin = GetPlaneIntersection(new Vector3(mouse.position.ReadValue().x, mouse.position.ReadValue().y, 0f));
         }
 
         public void SetCamera(IMapInformation mapInfo)

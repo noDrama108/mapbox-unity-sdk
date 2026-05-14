@@ -41,7 +41,7 @@ namespace Mapbox.BaseModule.Unity
 
         public void OnDestroy()
         {
-            TaskManager.OnDestroy();
+            TaskManager?.OnDestroy();
         }
     }
 }
